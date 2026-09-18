@@ -1,0 +1,51 @@
+{
+  "ai_provider": "Gemini",
+  "gemini_api_key": "YOUR_GEMINI_API_KEY_HERE",
+  "openai_api_key": "",
+  "anthropic_api_key": "",
+  "instagram_business_account_id": "your_instagram_business_account_id",
+  "facebook_page_access_token": "your_facebook_page_long_lived_access_token",
+  "default_voice": "PRARAMBH_MALE",
+  "default_tone": "Neutral",
+  "voice_settings": {
+    "speed": 1.3,
+    "pitch": 0.5,
+    "stability": 0.25,
+    "similarity_boost": 0.8,
+    "style": 0.6,
+    "pause_duration": 0.4,
+    "emphasis_strength": 0.7
+  },
+  "line1_bg": "#FF0033",
+  "line1_text": "#FFFFFF",
+  "line2_bg": "#0080FF",
+  "line2_text": "#FFFFFF",
+  "sub_font_size": 58,
+  "sub_color": "#FFFFFF",
+  "sub_outline_color": "#000000",
+  "target_duration": 30,
+  "target_lufs": -13,
+  "bgm_duck_volume": 0.1,
+  "script_pacing_wps": 2.6,
+  "safe_zone_top": 220,
+  "safe_zone_bottom": 420,
+  "capcut_defaults": {
+    "target_duration": 30.0,
+    "sync_to_beats": true,
+    "motion_intensity": "balanced",
+    "transition_style": "auto",
+    "preset": "serious"
+  },
+  "subtitle_settings": {
+    "style_preset": "mixed_highlight",
+    "base_color": "#FFFFFF",
+    "highlight_color": "#FFD700",
+    "glow_color": "#FFD700",
+    "font_size": 72,
+    "chunk_size": 3,
+    "animation": "bounce_soft",
+    "enable_glow": false,
+    "enable_pill_bg": false
+  },
+  "active_voice_preset": "custom"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "news_anchor",
+  "language": "gu-IN",
+  "displayName": "Gujarati Professional News Anchor (પ્રોફેશનલ ન્યૂઝ એન્કર)",
+  "speechRate": 1.12,
+  "pitchMultiplier": 0.98,
+  "pauseMultiplier": 0.88,
+  "noiseScale": 0.60,
+  "noiseScaleDur": 0.72,
+  "equalizer": {
+    "lowGainDb": -1.5,
+    "midGainDb": 3.0,
+    "highGainDb": 2.5
+  },
+  "pronunciationRules": [],
+  "vocabularyOverrides": [],
+  "prosodyRules": {
+    "commaPauseMs": 110,
+    "sentencePauseMs": 280,
+    "paragraphPauseMs": 480,
+    "openingEmphasisGain": 1.40
+  }
+}

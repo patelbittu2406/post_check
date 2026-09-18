@@ -1,0 +1,86 @@
+{
+  "description": "Benchmark test dataset for Gujarati Regional Accent TTS evaluation",
+  "version": "1.0.0",
+  "categories": {
+    "common_news": [
+      {
+        "id": "common_01",
+        "text": "નમસ્કાર. સુરતના અડાજણ રિંગ રોડ પર નવો ફ્લાયઓવર બ્રિજ આજથી વાહન વ્યવહાર માટે ખુલ્લો મુકાયો છે.",
+        "focus": "Formal news broadcast, location names, standard phonemes"
+      },
+      {
+        "id": "common_02",
+        "text": "હવામાન વિભાગના અહેવાલ મુજબ આગામી અડતાલીસ કલાકમાં સમગ્ર દક્ષિણ ગુજરાતમાં ભારે વરસાદની આગાહી છે.",
+        "focus": "Official government forecast, compound words, clause pauses"
+      }
+    ],
+    "numbers_and_measures": [
+      {
+        "id": "num_01",
+        "text": "અમદાવાદ અને સુરતમાં આજે બપોરે તાપમાન 38°C નોંધાયું, જ્યારે ભેજનું પ્રમાણ 75% રહ્યું.",
+        "focus": "Temperatures and percentages"
+      },
+      {
+        "id": "num_02",
+        "text": "રાજ્ય સરકારે ખેડૂતો માટે ₹1,25,000 ની આર્થિક સહાય અને ₹500 કરોડનું વિશેષ પેકેજ મંજૂર કર્યું.",
+        "focus": "Currency symbols, lakhs and crores"
+      },
+      {
+        "id": "num_03",
+        "text": "આજે સવારે 10:30 વાગ્યે શરૂ થયેલી બેઠક બપોરે 02:45 વાગ્યા સુધી ચાલુ રહી હતી.",
+        "focus": "Time formatting and durations"
+      },
+      {
+        "id": "num_04",
+        "text": "તારીખ 15/09/2026 ના રોજ યોજાનાર કાર્યક્રમમાં કુલ 2,50,000 નાગરિકો જોડાશે.",
+        "focus": "Calendar dates and large comma numbers"
+      }
+    ],
+    "acronyms_and_abbreviations": [
+      {
+        "id": "acro_01",
+        "text": "પોલીસે CCTV ફૂટેજના આધારે આરોપી સામે FIR નોંધી અને VIP સુરક્ષા વધારી દીધી.",
+        "focus": "English acronyms (CCTV, FIR, VIP)"
+      },
+      {
+        "id": "acro_02",
+        "text": "ડો. મહેતા અને પ્રો. શાહે ગાંધીનગરમાં CM અને PM ના નેતૃત્વની પ્રશંસા કરી.",
+        "focus": "Doctor/Professor abbreviations and political titles (CM, PM)"
+      }
+    ],
+    "difficult_phonemes": [
+      {
+        "id": "phoneme_01",
+        "text": "કાળઝાળ ગરમીમાં લોકો ત્રાહિમામ પોકારી ઉઠ્યા અને શીતળ જળની પરબો શરૂ કરાઈ.",
+        "focus": "Retroflex lateral ળ (ḷ), aspirates, consonant conjuncts"
+      },
+      {
+        "id": "phoneme_02",
+        "text": "ઉદ્યોગપતિઓએ હીરા અને કાપડ ઉદ્યોગના પુનરુત્થાન માટે કેન્દ્ર સરકારને રજૂઆત કરી.",
+        "focus": "Sanskrit loanwords (તત્સમ), retroflex stops, conjuncts"
+      }
+    ],
+    "regional_dialect_markers": [
+      {
+        "id": "dialect_kathiyawadi",
+        "text": "અહીંયા વેસુમાં ચોરી થઈ અને આરોપી પકડાઈ ગયો હતો. મોટી સંખ્યામાં લોકો ભેગા થયા.",
+        "focus": "Tests Kathiyawadi contraction (ગિયો'તો), lexical shifts (હિયાં, ઢગલાબંધ)"
+      },
+      {
+        "id": "dialect_mahesani",
+        "text": "તમે ક્યાં જઈ રહ્યા છો? આજે મહેસાણામાં ભારે વરસાદ છે.",
+        "focus": "Tests Mahesani interrogative (ચ્યાં) and copula sibilant (શે)"
+      },
+      {
+        "id": "dialect_surati",
+        "text": "સુરતમાં આજે બહુ ટ્રાફિક છે, લોકો સાથે મળીને રસ્તો સાફ કરી રહ્યા છે.",
+        "focus": "Tests Surati quantifier (બોવ) and s->h lenition (હાથે)"
+      },
+      {
+        "id": "dialect_news_anchor",
+        "text": "બ્રેકિંગ ન્યૂઝ: સુરત કમિશનર કચેરીથી અત્યારના સૌથી મોટા અને મહત્વપૂર્ણ સમાચાર.",
+        "focus": "Tests Breaking news dynamic stress, rapid anchor cadence"
+      }
+    ]
+  }
+}

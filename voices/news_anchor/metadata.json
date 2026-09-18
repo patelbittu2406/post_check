@@ -1,0 +1,10 @@
+{
+  "id": "gu-news-anchor",
+  "name": "Professional Gujarati News Anchor",
+  "accent": "news_anchor",
+  "gender": "male",
+  "description": "High-velocity broadcast anchor delivery with dynamic presence, crisp articulation, and breaking news punch.",
+  "language": "gu-IN",
+  "target_lufs": -14.0,
+  "sample_rate": 22050
+}

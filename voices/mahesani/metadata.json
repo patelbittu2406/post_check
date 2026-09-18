@@ -1,0 +1,10 @@
+{
+  "id": "gu-mahesani",
+  "name": "Mahesani North Gujarati News",
+  "accent": "mahesani",
+  "gender": "male",
+  "description": "North Gujarat / Mahesani regional delivery with crisp staccato rhythm and regional shifts.",
+  "language": "gu-IN",
+  "target_lufs": -14.0,
+  "sample_rate": 22050
+}

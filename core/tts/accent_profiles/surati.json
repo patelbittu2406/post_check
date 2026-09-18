@@ -1,0 +1,72 @@
+{
+  "id": "surati",
+  "language": "gu-IN",
+  "displayName": "Surati Gujarati (સુરતી દક્ષિણ ગુજરાત)",
+  "speechRate": 0.96,
+  "pitchMultiplier": 1.04,
+  "pauseMultiplier": 1.08,
+  "noiseScale": 0.65,
+  "noiseScaleDur": 0.88,
+  "equalizer": {
+    "lowGainDb": 1.8,
+    "midGainDb": -0.5,
+    "highGainDb": 1.0
+  },
+  "pronunciationRules": [
+    {
+      "pattern": "\\bનથી\\b",
+      "replacement": "નઇ",
+      "description": "Surati negative marker"
+    },
+    {
+      "pattern": "\\bકહ્યું હતું\\b",
+      "replacement": "કે'લું",
+      "description": "Surati past verb form"
+    },
+    {
+      "pattern": "\\bકહ્યું\\b",
+      "replacement": "કે'લું",
+      "description": "Surati past verb form"
+    },
+    {
+      "pattern": "\\bઆવ્યા\\b",
+      "replacement": "આયલા",
+      "description": "Surati plural arrival form"
+    },
+    {
+      "pattern": "\\bસાથે\\b",
+      "replacement": "હાથે",
+      "description": "Surati s->h lenition"
+    },
+    {
+      "pattern": "\\bબહુ\\b",
+      "replacement": "બોવ",
+      "description": "Surati quantifier pronunciation"
+    },
+    {
+      "pattern": "\\bકરો છો\\b",
+      "replacement": "કરો સો",
+      "description": "Surati verbal suffix"
+    }
+  ],
+  "vocabularyOverrides": [
+    {
+      "source": "તરત",
+      "target": "વેંતમાં"
+    },
+    {
+      "source": "ચોક્કસ",
+      "target": "પાક્કું"
+    },
+    {
+      "source": "ખરેખર",
+      "target": "સાચે સાચ"
+    }
+  ],
+  "prosodyRules": {
+    "commaPauseMs": 200,
+    "sentencePauseMs": 420,
+    "paragraphPauseMs": 720,
+    "openingEmphasisGain": 1.05
+  }
+}

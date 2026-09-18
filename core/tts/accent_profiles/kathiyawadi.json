@@ -1,0 +1,89 @@
+{
+  "id": "kathiyawadi",
+  "language": "gu-IN",
+  "displayName": "Kathiyawadi Gujarati (કાઠિયાવાડી સૌરાષ્ટ્ર)",
+  "speechRate": 1.04,
+  "pitchMultiplier": 0.96,
+  "pauseMultiplier": 0.92,
+  "noiseScale": 0.72,
+  "noiseScaleDur": 0.85,
+  "equalizer": {
+    "lowGainDb": 2.5,
+    "midGainDb": 1.8,
+    "highGainDb": -0.8
+  },
+  "pronunciationRules": [
+    {
+      "pattern": "\\bગયો હતો\\b",
+      "replacement": "ગિયો'તો",
+      "description": "Kathiyawadi past verb contraction"
+    },
+    {
+      "pattern": "\\bગયા હતા\\b",
+      "replacement": "ગિયા'તા",
+      "description": "Kathiyawadi plural past verb contraction"
+    },
+    {
+      "pattern": "\\bઆવ્યો હતો\\b",
+      "replacement": "આવિયો'તો",
+      "description": "Kathiyawadi past verb contraction"
+    },
+    {
+      "pattern": "\\bઆવ્યા હતા\\b",
+      "replacement": "આવિયા'તા",
+      "description": "Kathiyawadi plural past verb contraction"
+    },
+    {
+      "pattern": "\\bકર્યું હતું\\b",
+      "replacement": "કરિયું'તું",
+      "description": "Kathiyawadi neuter past verb contraction"
+    },
+    {
+      "pattern": "\\bથયું હતું\\b",
+      "replacement": "થિયું'તું",
+      "description": "Kathiyawadi neuter past verb contraction"
+    },
+    {
+      "pattern": "\\bકહ્યું હતું\\b",
+      "replacement": "કીધું'તું",
+      "description": "Kathiyawadi verb variant"
+    },
+    {
+      "pattern": "\\bજોયું હતું\\b",
+      "replacement": "ભાળિયું'તું",
+      "description": "Kathiyawadi sight verb inflection"
+    }
+  ],
+  "vocabularyOverrides": [
+    {
+      "source": "અહીંયા",
+      "target": "હિયાં"
+    },
+    {
+      "source": "અહીં",
+      "target": "હિયાં"
+    },
+    {
+      "source": "ત્યાં",
+      "target": "તિયાં"
+    },
+    {
+      "source": "બહુ જ",
+      "target": "ઝાઝું"
+    },
+    {
+      "source": "તરત જ",
+      "target": "વેંતમાં જ"
+    },
+    {
+      "source": "મોટી સંખ્યામાં",
+      "target": "ઢગલાબંધ"
+    }
+  ],
+  "prosodyRules": {
+    "commaPauseMs": 140,
+    "sentencePauseMs": 330,
+    "paragraphPauseMs": 550,
+    "openingEmphasisGain": 1.25
+  }
+}

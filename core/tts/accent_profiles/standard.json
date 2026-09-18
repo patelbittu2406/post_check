@@ -1,0 +1,23 @@
+{
+  "id": "standard",
+  "language": "gu-IN",
+  "displayName": "Standard Gujarati (શિષ્ટ ગુજરાતી)",
+  "speechRate": 1.0,
+  "pitchMultiplier": 1.0,
+  "pauseMultiplier": 1.0,
+  "noiseScale": 0.667,
+  "noiseScaleDur": 0.8,
+  "equalizer": {
+    "lowGainDb": 0.0,
+    "midGainDb": 0.0,
+    "highGainDb": 0.0
+  },
+  "pronunciationRules": [],
+  "vocabularyOverrides": [],
+  "prosodyRules": {
+    "commaPauseMs": 180,
+    "sentencePauseMs": 380,
+    "paragraphPauseMs": 650,
+    "openingEmphasisGain": 1.0
+  }
+}

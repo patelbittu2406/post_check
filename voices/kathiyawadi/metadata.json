@@ -1,0 +1,10 @@
+{
+  "id": "gu-kathiyawadi",
+  "name": "Kathiyawadi Gujarati News",
+  "accent": "kathiyawadi",
+  "gender": "male",
+  "description": "Authentic Saurashtra / Kathiyawadi cadence with regional verb contractions and punchy stress.",
+  "language": "gu-IN",
+  "target_lufs": -14.0,
+  "sample_rate": 22050
+}

@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+/build/
+/develop-eggs/
+/dist/
+/downloads/
+/eggs/
+.eggs/
+/parts/
+/sdist/
+/var/
+/wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables & Sensitive Credentials
+.env
+.env.local
+.env.*.local
+user_profile.json
+
+# Node & Next.js (Frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/.vercel
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Rendered Output & Generated Media
+output/
+temp_*/
+*.log
+.DS_Store
+Thumbs.db
+.cache/
+
+# User uploaded clips & cache (preserve sample assets)
+assets/user_clips/user_*
+assets/voices/.*cache*.json

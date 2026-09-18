@@ -1,0 +1,10 @@
+{
+  "id": "gu-surati",
+  "name": "Surati Gujarati News",
+  "accent": "surati",
+  "gender": "female",
+  "description": "South Gujarat / Surati melodic delivery with relaxed musical phrasing and warm cadence.",
+  "language": "gu-IN",
+  "target_lufs": -14.0,
+  "sample_rate": 22050
+}

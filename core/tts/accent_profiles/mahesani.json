@@ -1,0 +1,87 @@
+{
+  "id": "mahesani",
+  "language": "gu-IN",
+  "displayName": "Mahesani / North Gujarati (મહેસાણી ઉત્તર ગુજરાત)",
+  "speechRate": 1.08,
+  "pitchMultiplier": 1.02,
+  "pauseMultiplier": 0.88,
+  "noiseScale": 0.69,
+  "noiseScaleDur": 0.78,
+  "equalizer": {
+    "lowGainDb": -0.5,
+    "midGainDb": 2.0,
+    "highGainDb": 1.5
+  },
+  "pronunciationRules": [
+    {
+      "pattern": "\\bક્યાં\\b",
+      "replacement": "ચ્યાં",
+      "description": "North Gujarat palatal shift k->ch"
+    },
+    {
+      "pattern": "\\bકેમ\\b",
+      "replacement": "ચેમ",
+      "description": "North Gujarat palatal shift k->ch"
+    },
+    {
+      "pattern": "\\bકોણ\\b",
+      "replacement": "ચ્યોણ",
+      "description": "North Gujarat interrogative shift"
+    },
+    {
+      "pattern": "\\bગયો\\b",
+      "replacement": "જ્યો",
+      "description": "North Gujarat g->j shift"
+    },
+    {
+      "pattern": "\\bગઈ\\b",
+      "replacement": "જી",
+      "description": "North Gujarat g->j shift"
+    },
+    {
+      "pattern": "\\bઆવ્યો\\b",
+      "replacement": "આયો",
+      "description": "North Gujarat v-drop"
+    },
+    {
+      "pattern": "\\bઆવી\\b",
+      "replacement": "આઈ",
+      "description": "North Gujarat v-drop"
+    },
+    {
+      "pattern": "\\bકરી રહ્યો છે\\b",
+      "replacement": "કર રયો શે",
+      "description": "North Gujarat continuous verb form"
+    },
+    {
+      "pattern": "\\bઆપી રહ્યો છે\\b",
+      "replacement": "આપ રયો શે",
+      "description": "North Gujarat continuous verb form"
+    },
+    {
+      "pattern": "\\bછે\\b",
+      "replacement": "શે",
+      "description": "Mahesani copula sibilant realization"
+    }
+  ],
+  "vocabularyOverrides": [
+    {
+      "source": "નથી",
+      "target": "નઇ"
+    },
+    {
+      "source": "બહુ",
+      "target": "ઘણું"
+    },
+    {
+      "source": "ચાલ્યા ગયા",
+      "target": "નીકળી જ્યા"
+    }
+  ],
+  "prosodyRules": {
+    "commaPauseMs": 120,
+    "sentencePauseMs": 300,
+    "paragraphPauseMs": 500,
+    "openingEmphasisGain": 1.15
+  }
+}
