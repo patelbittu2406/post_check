@@ -38,6 +38,8 @@ from core.subtitle_presets import (
 from core.ass_presets import list_presets as list_legacy_subtitle_presets, get_preset as get_legacy_subtitle_preset
 from core.video_assembler import VideoAssembler
 from core.ig_publisher import InstagramPublisher
+from core.ig_analytics import InstagramAnalyticsEngine
+from core.ig_advisor import GeminiGrowthAdvisor
 from core.capcut_auto_editor import CapCutAutoEditor
 
 
@@ -66,6 +68,8 @@ voice_engine = PrarambhVoiceEngine()
 subtitle_generator = AdvancedSubtitleGenerator()
 video_assembler = VideoAssembler()
 ig_publisher = InstagramPublisher()
+ig_analytics = InstagramAnalyticsEngine()
+growth_advisor = GeminiGrowthAdvisor()
 
 
 # -----------------------------------------------------------------------------
@@ -571,10 +575,12 @@ def get_user_profile():
 def update_user_profile(payload: UserProfileUpdate):
     data = payload.model_dump(exclude_unset=True)
     config.save_user_profile(data)
-    # Refresh publisher & adapter credentials
+    # Refresh publisher, analytics & adapter credentials
     if "instagram_business_account_id" in data or "facebook_page_access_token" in data:
         ig_publisher.account_id = data.get("instagram_business_account_id", ig_publisher.account_id)
         ig_publisher.access_token = data.get("facebook_page_access_token", ig_publisher.access_token)
+        ig_analytics.account_id = data.get("instagram_business_account_id", ig_analytics.account_id)
+        ig_analytics.access_token = data.get("facebook_page_access_token", ig_analytics.access_token)
     return {"status": "success", "profile": config.load_user_profile()}
 
 
@@ -1184,6 +1190,10 @@ def get_analytics():
         for k, v in cat_counts.items()
     ]
     
+    # Demographics & recent reels performance via InstagramAnalyticsEngine
+    demographics = ig_analytics.fetch_audience_demographics()
+    recent_reels = ig_analytics.fetch_recent_reels_performance(limit=10)
+
     return {
         "kpis": {
             "total_reels": max(total_reels, 12),  # Provide baseline demo counts if brand new
@@ -1207,8 +1217,33 @@ def get_analytics():
             {"date": "Fri", "reels": 6, "published": 5},
             {"date": "Sat", "reels": 8, "published": 7},
             {"date": "Sun", "reels": 9, "published": 8}
-        ]
+        ],
+        "audience_demographics": demographics,
+        "recent_reels_performance": recent_reels
     }
+
+
+@app.get("/api/instagram/demographics")
+def get_instagram_demographics():
+    return ig_analytics.fetch_audience_demographics()
+
+
+@app.get("/api/instagram/reels-insights")
+def get_instagram_reels_insights(limit: int = 15):
+    return ig_analytics.fetch_recent_reels_performance(limit=limit)
+
+
+@app.get("/api/instagram/growth-audit")
+@app.post("/api/instagram/growth-audit")
+def get_instagram_growth_audit(payload: Optional[Dict[str, Any]] = None):
+    demographics = payload.get("demographics") if payload else None
+    reels_data = payload.get("reels_data") if payload else None
+    api_key = payload.get("api_key") if payload else None
+    return growth_advisor.analyze_account_performance(
+        demographics=demographics,
+        reels_data=reels_data,
+        api_key=api_key
+    )
 
 
 # -----------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { useStore } from "@/store/useStore";
-import { renderVideoAPI, publishInstagramAPI, generateVoiceAPI, autoTagScriptAPI } from "@/lib/api";
+import { renderVideoAPI, generateVoiceAPI, autoTagScriptAPI } from "@/lib/api";
 import { toast } from "sonner";
 import { 
   Sliders, 
@@ -12,12 +12,10 @@ import {
   Volume2, 
   Play, 
   Download, 
-  Instagram, 
   Sparkles, 
   Loader2, 
   CheckCircle2, 
   AlertTriangle,
-  ExternalLink,
   Film,
   RotateCcw,
   Tag,
@@ -50,10 +48,6 @@ export function InspectorPanel() {
     renderProgress,
     renderStepMessage,
     setRenderStatus,
-    isPublishing,
-    setIsPublishing,
-    publishResult,
-    setPublishResult,
     isGeneratingVoice,
     setIsGeneratingVoice
   } = useStore();
@@ -255,44 +249,6 @@ export function InspectorPanel() {
       toast.error(`Render failed: ${err.message}`);
     } finally {
       setIsRenderingVideo(false);
-    }
-  };
-
-  const handlePublishInstagram = async () => {
-    if (!draft.renderedVideoFilename) {
-      toast.warning("Please render the video before publishing to Instagram");
-      return;
-    }
-
-    setIsPublishing(true);
-    const isConfigured = Boolean(
-      profile.instagram_business_account_id && profile.facebook_page_access_token
-    );
-
-    const toastId = toast.loading(
-      isConfigured 
-        ? "📸 Uploading video & creating Meta Graph API container..." 
-        : "🧪 Simulating Instagram publish in Dry-Run mode..."
-    );
-
-    try {
-      const res = await publishInstagramAPI({
-        video_filename: draft.renderedVideoFilename,
-        caption: draft.caption,
-        dry_run: !isConfigured,
-      });
-
-      setPublishResult(res);
-      toast.success(
-        res.mode === "live"
-          ? "🎉 Published live to Instagram Reel!"
-          : "✅ Dry-run simulation completed successfully!",
-        { id: toastId }
-      );
-    } catch (err: any) {
-      toast.error(`Publishing failed: ${err.message}`, { id: toastId });
-    } finally {
-      setIsPublishing(false);
     }
   };
 
@@ -525,34 +481,9 @@ export function InspectorPanel() {
             </a>
           </div>
         )}
-
-        {/* 5. Instagram Publish Result Box */}
-        {publishResult && (
-          <div className="p-3.5 rounded-xl bg-bg-elevated border border-brand-cyan/40 space-y-2 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-text-primary">Publish Status</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                publishResult.mode === "live" ? "bg-accent-success/20 text-accent-success" : "bg-brand-yellow/20 text-brand-yellow"
-              }`}>
-                {publishResult.mode === "live" ? "LIVE ON INSTAGRAM" : "DRY-RUN SIMULATED"}
-              </span>
-            </div>
-            {publishResult.permalink && (
-              <a
-                href={publishResult.permalink}
-                target="_blank"
-                rel="noreferrer"
-                className="text-brand-cyan flex items-center gap-1 underline text-[11px]"
-              >
-                <span>View Instagram Reel</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Render & Publish Actions */}
+      {/* Render Action */}
       <div className="space-y-2 pt-2 sticky bottom-0 bg-bg-surface pb-1 border-t border-border/50">
         <button
           type="button"
@@ -569,25 +500,6 @@ export function InspectorPanel() {
             <>
               <Film className="w-4 h-4 text-brand-yellow" />
               <span>Render 1080x1920 Reel</span>
-            </>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={handlePublishInstagram}
-          disabled={isPublishing || !draft.renderedVideoFilename}
-          className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-text-primary bg-bg-elevated border border-border hover:border-brand-pink/50 flex items-center justify-center gap-2 transition-all disabled:opacity-40"
-        >
-          {isPublishing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin text-brand-pink" />
-              <span>Publishing Reel...</span>
-            </>
-          ) : (
-            <>
-              <Instagram className="w-4 h-4 text-brand-pink" />
-              <span>Publish to Instagram</span>
             </>
           )}
         </button>

@@ -368,6 +368,28 @@ export async function fetchAnalytics(): Promise<any> {
   return res.json();
 }
 
+export async function fetchInstagramDemographics(): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/instagram/demographics`);
+  if (!res.ok) throw new Error("Failed to fetch demographics");
+  return res.json();
+}
+
+export async function fetchInstagramReelsInsights(limit: number = 15): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/instagram/reels-insights?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to fetch reels insights");
+  return res.json();
+}
+
+export async function fetchInstagramGrowthAudit(payload?: any): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/instagram/growth-audit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!res.ok) throw new Error("Failed to fetch growth audit");
+  return res.json();
+}
+
 export async function testLLMConnection(payload: {
   provider: string;
   api_key: string;

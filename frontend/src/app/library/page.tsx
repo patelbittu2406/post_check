@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchLibrary, publishInstagramAPI } from "@/lib/api";
+import { fetchLibrary } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import { toast } from "sonner";
 import { 
@@ -11,14 +11,11 @@ import {
   Filter, 
   Play, 
   Download, 
-  Instagram, 
   Plus, 
   Film, 
   Calendar, 
   Clock, 
   CheckCircle2, 
-  AlertCircle,
-  ExternalLink,
   X
 } from "lucide-react";
 
@@ -28,7 +25,6 @@ export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedReel, setSelectedReel] = useState<any | null>(null);
-  const [publishingId, setPublishingId] = useState<string | null>(null);
   const { profile } = useStore();
 
   const loadData = async () => {
@@ -55,35 +51,6 @@ export default function LibraryPage() {
       selectedCategory === "all" || r.category_code === selectedCategory;
     return matchesSearch && matchesCat;
   });
-
-  const handleQuickPublish = async (reel: any) => {
-    setPublishingId(reel.id);
-    const isConfigured = Boolean(
-      profile.instagram_business_account_id && profile.facebook_page_access_token
-    );
-
-    const toastId = toast.loading(
-      isConfigured ? "Publishing reel to Instagram..." : "Running dry-run publication..."
-    );
-
-    try {
-      const res = await publishInstagramAPI({
-        video_filename: reel.filename,
-        caption: `SURAT UPDATE | ${reel.category_code}\n${reel.headline_line1}\n${reel.headline_line2}\n\n#Surat #SuratNews`,
-        dry_run: !isConfigured,
-      });
-
-      toast.success(
-        res.mode === "live" ? "🎉 Published live to Instagram!" : "✅ Dry-run completed!",
-        { id: toastId }
-      );
-      loadData();
-    } catch (err: any) {
-      toast.error(`Publish failed: ${err.message}`, { id: toastId });
-    } finally {
-      setPublishingId(null);
-    }
-  };
 
   return (
     <div className="h-full flex flex-col overflow-y-auto bg-bg-base p-6 md:p-8 space-y-6">
@@ -199,20 +166,11 @@ export default function LibraryPage() {
                     <a
                       href={reel.video_url}
                       download={reel.filename}
-                      className="flex-1 py-1.5 px-2 rounded-xl bg-bg-elevated border border-border text-[11px] font-bold text-text-primary hover:border-brand-pink flex items-center justify-center gap-1.5 transition-colors"
+                      className="w-full py-1.5 px-2 rounded-xl bg-bg-elevated border border-border text-[11px] font-bold text-text-primary hover:border-brand-pink flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5 text-brand-pink" />
-                      <span>Download</span>
+                      <span>Download MP4</span>
                     </a>
-
-                    <button
-                      onClick={() => handleQuickPublish(reel)}
-                      disabled={publishingId === reel.id}
-                      className="flex-1 py-1.5 px-2 rounded-xl bg-bg-elevated border border-border text-[11px] font-bold text-text-primary hover:border-brand-cyan hover:text-brand-cyan flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40"
-                    >
-                      <Instagram className="w-3.5 h-3.5 text-brand-cyan" />
-                      <span>{publishingId === reel.id ? "Publishing..." : "Publish"}</span>
-                    </button>
                   </div>
                 </div>
               </div>
@@ -281,19 +239,11 @@ export default function LibraryPage() {
               <a
                 href={selectedReel.video_url}
                 download={selectedReel.filename}
-                className="flex-1 py-2 rounded-xl bg-bg-elevated border border-border text-xs font-bold text-text-primary hover:border-brand-pink flex items-center justify-center gap-2"
+                className="w-full py-2 rounded-xl bg-bg-elevated border border-border text-xs font-bold text-text-primary hover:border-brand-pink flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4 text-brand-pink" />
                 <span>Download MP4</span>
               </a>
-
-              <button
-                onClick={() => handleQuickPublish(selectedReel)}
-                className="flex-1 py-2 rounded-xl brand-gradient-bg text-white text-xs font-bold flex items-center justify-center gap-2 glow-pink"
-              >
-                <Instagram className="w-4 h-4" />
-                <span>Publish Reel</span>
-              </button>
             </div>
           </div>
         </div>

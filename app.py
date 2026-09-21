@@ -18,11 +18,14 @@ BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 
 import config
+import pandas as pd
 from core.llm_adapter import LLMAdapter, ReelContentOutput
 from core.voice_engine import PrarambhVoiceEngine as VoiceEngine
 from core.subtitle_generator import SubtitleGenerator
 from core.video_assembler import VideoAssembler
 from core.ig_publisher import InstagramPublisher
+from core.ig_analytics import InstagramAnalyticsEngine
+from core.ig_advisor import GeminiGrowthAdvisor
 
 # -----------------------------------------------------------------------------
 # Streamlit Configuration & Custom Styling
@@ -155,11 +158,12 @@ st.markdown('<div class="sub-header">Automated Multi-LLM Newsroom: Dual-Stripe H
 # -----------------------------------------------------------------------------
 # Navigation Tabs
 # -----------------------------------------------------------------------------
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🎬 Tab 1: Reel Studio",
     "⚙️ Tab 2: User Profile & Settings",
     "🎨 Tab 3: Visual & Voice Styling",
-    "🎙️ Tab 4: Quick TTS"
+    "📊 Tab 4: Instagram Growth & AI Analytics",
+    "🎙️ Tab 5: Quick TTS"
 ])
 
 # =============================================================================
@@ -1184,53 +1188,309 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown("---")
-            st.markdown("### 🚀 3. Publish to Instagram")
-
-            is_dry_run = not ig_publisher.is_configured()
-            if is_dry_run:
-                st.warning("⚠️ Meta Graph API credentials not configured. Will publish in **DRY-RUN simulation mode**.")
-            else:
-                st.info("🟢 Meta Graph API credentials connected. Ready to publish live.")
-
-            if st.button("📤 Publish Directly to Instagram Reel", type="primary", use_container_width=True):
-                pub_status = st.empty()
-
-                def update_pub(msg: str):
-                    pub_status.info(msg)
-
-                cap = st.session_state.reel_content.caption if st.session_state.reel_content else "SURAT NEWS"
-                try:
-                    res = ig_publisher.publish_reel(
-                        video_path=display_vid,
-                        caption=cap,
-                        dry_run=is_dry_run,
-                        status_callback=update_pub
-                    )
-                    st.session_state.publish_result = res
-                    st.balloons()
-                    st.success("🎉 Reel Successfully Published!")
-                except Exception as e:
-                    st.error(f"Publishing failed: {e}")
-
-            if st.session_state.publish_result:
-                r = st.session_state.publish_result
-                st.markdown(f"""
-                <div class="card-box">
-                    <b>Status:</b> {'✅ Live Published' if r['mode'] == 'live' else '🧪 Simulated (Dry-Run)'}<br>
-                    <b>Container ID:</b> <code>{r.get('container_id')}</code><br>
-                    <b>Media ID:</b> <code>{r.get('media_id')}</code><br>
-                    <b>Live Permalink:</b> <a href="{r.get('permalink')}" target="_blank">{r.get('permalink')}</a>
-                </div>
-                """, unsafe_allow_html=True)
-
         else:
             st.info("👈 Complete Step 1 & Step 2 on the left to generate and render your vertical 1080x1920 Reel.")
 
 # =============================================================================
-# TAB 4: QUICK TTS — Direct Text to Speech
+# TAB 4: INSTAGRAM GROWTH & AI ANALYTICS
 # =============================================================================
 with tab4:
+    st.markdown("### 📊 Instagram Growth & AI Analytics Hub")
+    st.caption("Extract live audience demographics, viral retention ratios, and generate strategic Gemini 2.5 algorithm audits.")
+
+    # 1. Header & Trigger Button
+    col_btn, col_status = st.columns([1.5, 2.5])
+    with col_btn:
+        fetch_clicked = st.button(
+            "🔄 Fetch Instagram Insights & Run Gemini Audit",
+            type="primary",
+            use_container_width=True,
+            key="btn_fetch_ig_growth_audit"
+        )
+
+    analytics_eng = InstagramAnalyticsEngine()
+    growth_adv = GeminiGrowthAdvisor()
+
+    # Automatically load data on first render or when button clicked
+    if fetch_clicked or "ig_demographics" not in st.session_state or "ig_reels_performance" not in st.session_state:
+        with st.spinner("🔄 Fetching Meta Graph API insights & analyzing via Gemini 2.5 AI..."):
+            try:
+                demo_data = analytics_eng.fetch_audience_demographics()
+                reels_perf = analytics_eng.fetch_recent_reels_performance(limit=10)
+                gemini_key = st.session_state.profile.get("gemini_api_key") or config.GEMINI_API_KEY
+                growth_report = growth_adv.analyze_account_performance(
+                    demographics=demo_data,
+                    reels_data=reels_perf,
+                    api_key=gemini_key
+                )
+
+                st.session_state["ig_demographics"] = demo_data
+                st.session_state["ig_reels_performance"] = reels_perf
+                st.session_state["ig_growth_report"] = growth_report
+            except Exception as e:
+                st.error(f"Failed to retrieve insights: {e}")
+
+    demo = st.session_state.get("ig_demographics", {})
+    reels_list = st.session_state.get("ig_reels_performance", [])
+    report = st.session_state.get("ig_growth_report", {})
+
+    with col_status:
+        is_live = demo.get("status") == "live"
+        if is_live:
+            st.success("🟢 **Live Meta Graph API Connected**: Real-time Instagram Account Insights")
+        else:
+            st.info("🧪 **Simulation & Benchmark Mode**: Configure Meta credentials in Tab 2 for live data")
+
+    st.markdown("---")
+
+    # 2. Overview Metrics Cards
+    surat_pct = demo.get("surat_follower_percentage", 68.5)
+    surat_count = demo.get("surat_follower_count", 28450)
+    total_sample = demo.get("total_audience_sample", 41500)
+
+    if reels_list:
+        avg_retention = sum(r.get("retention_rate", 0.0) for r in reels_list) / len(reels_list)
+        avg_watch_time = sum(r.get("avg_watch_time", 0.0) for r in reels_list) / len(reels_list)
+        avg_duration = sum(r.get("video_duration", 30.0) for r in reels_list) / len(reels_list)
+    else:
+        avg_retention = 64.5
+        avg_watch_time = 19.3
+        avg_duration = 30.0
+
+    # Determine best performing category from reels
+    cat_performance = {}
+    for r in reels_list:
+        cap = r.get("caption", "")
+        code = "T01"
+        if "C01" in cap or "ચોરી" in cap or "પોલીસ" in cap:
+            code = "C01"
+        elif "A01" in cap or "સબસિડી" in cap or "કોર્પોરેશન" in cap:
+            code = "A01"
+        elif "B01" in cap or "હીરા" in cap or "વેપાર" in cap:
+            code = "B01"
+        elif "F01" in cap or "ઉત્સવ" in cap or "ફૂડ" in cap:
+            code = "F01"
+        elif "T01" in cap or "મેટ્રો" in cap or "ટ્રાફિક" in cap or "બ્રિજ" in cap:
+            code = "T01"
+
+        if code not in cat_performance:
+            cat_performance[code] = {"shares": [], "saves": [], "reach": []}
+        cat_performance[code]["shares"].append(r.get("share_rate", 0.0))
+        cat_performance[code]["saves"].append(r.get("save_rate", 0.0))
+
+    best_cat = "T01 (Traffic & Transit)"
+    best_cat_share = 4.8
+    best_cat_save = 3.2
+    if cat_performance:
+        best_code = max(cat_performance.keys(), key=lambda k: sum(cat_performance[k]["shares"]) / len(cat_performance[k]["shares"]))
+        cat_names = {
+            "T01": "T01 (Traffic & Transit)",
+            "C01": "C01 (Crime Watch)",
+            "A01": "A01 (Civic Awareness)",
+            "B01": "B01 (Business & Trade)",
+            "F01": "F01 (Festivals & Lifestyle)",
+            "N01": "N01 (General News)"
+        }
+        best_cat = cat_names.get(best_code, f"{best_code} News")
+        best_cat_share = sum(cat_performance[best_code]["shares"]) / len(cat_performance[best_code]["shares"])
+        best_cat_save = sum(cat_performance[best_code]["saves"]) / len(cat_performance[best_code]["saves"])
+
+    card1, card2, card3 = st.columns(3)
+
+    with card1:
+        st.markdown(f"""
+        <div class="card-box" style="padding:18px; border-top: 4px solid #EC4899; text-align:center;">
+            <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:#94A3B8; letter-spacing:0.05em;">Surat Hyperlocal Followers</div>
+            <div style="font-size:2.1rem; font-weight:800; color:#F8FAFC; margin:4px 0;">{surat_pct:.1f}%</div>
+            <div style="font-size:0.8rem; color:#38BDF8;">📍 {surat_count:,} / {total_sample:,} Local Viewers</div>
+            <div style="margin-top:8px; display:inline-block; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(34,197,94,0.15); color:#4ADE80;">
+                🟢 High Local Density (>60%)
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with card2:
+        retention_color = "#22C55E" if avg_retention >= 60.0 else "#F59E0B"
+        st.markdown(f"""
+        <div class="card-box" style="padding:18px; border-top: 4px solid #38BDF8; text-align:center;">
+            <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:#94A3B8; letter-spacing:0.05em;">Avg Reel Hook Retention</div>
+            <div style="font-size:2.1rem; font-weight:800; color:#F8FAFC; margin:4px 0;">{avg_retention:.1f}%</div>
+            <div style="font-size:0.8rem; color:#94A3B8;">⏱️ Avg Watch Time: {avg_watch_time:.1f}s / {avg_duration:.0f}s</div>
+            <div style="margin-top:8px; display:inline-block; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(56,189,248,0.15); color:#38BDF8;">
+                🔥 Viral Benchmark ({avg_retention:.1f}%)
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with card3:
+        st.markdown(f"""
+        <div class="card-box" style="padding:18px; border-top: 4px solid #F59E0B; text-align:center;">
+            <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:#94A3B8; letter-spacing:0.05em;">Best Performing Category</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#F8FAFC; margin:8px 0; line-height:1.2;">{best_cat}</div>
+            <div style="font-size:0.8rem; color:#F59E0B;">🚀 Shares: {best_cat_share:.1f}% &nbsp;|&nbsp; 💾 Saves: {best_cat_save:.1f}%</div>
+            <div style="margin-top:8px; display:inline-block; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(245,158,11,0.15); color:#FCD34D;">
+                🏆 Top WhatsApp Share Trigger
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # 3. Performance Breakdown Table
+    st.markdown("#### 🎬 Recent Reels Performance Breakdown")
+    st.caption("Detailed engagement metrics, viral ratios, and AI performance badges across your latest published Reels.")
+
+    if reels_list:
+        rows = []
+        for r in reels_list:
+            share_r = r.get("share_rate", 0.0)
+            save_r = r.get("save_rate", 0.0)
+            ret_r = r.get("retention_rate", 0.0)
+            reach = r.get("reach", 0)
+
+            # Determine AI badge
+            if share_r >= 4.5 or ret_r >= 68.0:
+                badge = "🔥 Viral Winner"
+            elif save_r >= 3.0:
+                badge = "📌 High Utility"
+            elif ret_r < 55.0:
+                badge = "⚠️ Hook Needs Work"
+            else:
+                badge = "⚡ Good Performance"
+
+            cap_first = r.get("caption", "").split("\n")[0]
+            if len(cap_first) > 42:
+                cap_first = cap_first[:42] + "..."
+
+            # Category label
+            cat_label = "T01 Traffic"
+            if "C01" in cap_first or "ચોરી" in cap_first:
+                cat_label = "C01 Crime"
+            elif "A01" in cap_first or "સબસિડી" in cap_first:
+                cat_label = "A01 Civic"
+            elif "B01" in cap_first or "હીરા" in cap_first:
+                cat_label = "B01 Business"
+            elif "F01" in cap_first or "ઉત્સવ" in cap_first:
+                cat_label = "F01 Festival"
+
+            rows.append({
+                "Reel ID": r.get("id"),
+                "Headline / Caption": cap_first,
+                "Category": cat_label,
+                "Reach": f"{reach:,}",
+                "Shares": f"{r.get('shares', 0):,}",
+                "Share Rate": f"{share_r:.1f}%",
+                "Saves": f"{r.get('saved', 0):,}",
+                "Save Rate": f"{save_r:.1f}%",
+                "Watch Time": f"{r.get('avg_watch_time', 0.0):.1f}s",
+                "Retention": f"{ret_r:.1f}%",
+                "AI Badge": badge
+            })
+
+        df = pd.DataFrame(rows)
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Reach": st.column_config.TextColumn("Reach"),
+                "Share Rate": st.column_config.TextColumn("Share %"),
+                "Save Rate": st.column_config.TextColumn("Save %"),
+                "Retention": st.column_config.TextColumn("Retention %"),
+                "AI Badge": st.column_config.TextColumn("AI Diagnostic Badge")
+            }
+        )
+    else:
+        st.info("No recent Reels data available. Fetch insights using the button above.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # 4. Gemini Strategic Insights (Expanders)
+    st.markdown("#### 🤖 Gemini 2.5 Strategic Growth Audit")
+    st.caption("AI-generated algorithmic diagnosis, persona analysis, 5 viral Gujarati content hooks, and immediate action items.")
+
+    with st.expander("🎯 Audience Demographics & Persona", expanded=True):
+        st.markdown(f"""
+        <div class="card-box" style="border-left: 4px solid #38BDF8; margin-bottom:15px; font-size:0.9rem;">
+            <b>Audience Persona Summary:</b><br>
+            {report.get("audience_summary", "Hyperlocal Surat news audience...")}
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_city, col_age = st.columns(2)
+        with col_city:
+            st.markdown("##### 🏙️ Top Audience Cities")
+            top_cities = demo.get("top_cities", [])
+            if top_cities:
+                city_df = pd.DataFrame(top_cities[:6])
+                city_df.columns = ["City / Region", "Followers", "Percentage (%)"]
+                st.dataframe(city_df, use_container_width=True, hide_index=True)
+
+        with col_age:
+            st.markdown("##### 👥 Age & Gender Demographics")
+            age_dist = demo.get("age_distribution", [])
+            if age_dist:
+                age_df = pd.DataFrame(age_dist)
+                age_df.columns = ["Age Bracket", "Followers", "Percentage (%)"]
+                st.dataframe(age_df, use_container_width=True, hide_index=True)
+
+    with st.expander("🚨 Mistakes Detected in Current Reels", expanded=False):
+        col_m, col_w = st.columns(2)
+        with col_m:
+            st.markdown("##### ⚠️ Critical Flaws & Bottlenecks")
+            mistakes = report.get("critical_mistakes_detected", [])
+            for m in mistakes:
+                st.markdown(f"""
+                <div style="background:rgba(239,68,68,0.1); border-left:3px solid #EF4444; padding:8px 12px; border-radius:6px; margin-bottom:8px; font-size:0.85rem;">
+                    {m}
+                </div>
+                """, unsafe_allow_html=True)
+
+        with col_w:
+            st.markdown("##### 🏆 Top Winning Patterns")
+            patterns = report.get("top_winning_patterns", [])
+            for p in patterns:
+                st.markdown(f"""
+                <div style="background:rgba(34,197,94,0.1); border-left:3px solid #22C55E; padding:8px 12px; border-radius:6px; margin-bottom:8px; font-size:0.85rem;">
+                    {p}
+                </div>
+                """, unsafe_allow_html=True)
+
+    with st.expander("💡 Next 5 Viral Content Ideas (with full Gujarati Hooks)", expanded=True):
+        st.markdown("##### 🚀 5 Tailored Surat Viral Reel Concepts")
+        rec_plan = report.get("content_recommendation_plan", [])
+        for i, idea in enumerate(rec_plan, 1):
+            st.markdown(f"""
+            <div class="card-box" style="padding:14px; margin-bottom:12px; border-left:4px solid #EC4899;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:800; font-size:1rem; color:#F8FAFC;">{i}. {idea.get('idea_title')}</span>
+                    <span style="font-size:0.75rem; font-weight:700; background:rgba(236,72,153,0.15); color:#EC4899; padding:2px 8px; border-radius:4px;">
+                        {idea.get('category_code')} | {idea.get('target_area')} | {idea.get('ideal_length_sec')}s
+                    </span>
+                </div>
+                <div style="margin-top:8px; background:rgba(15,23,42,0.6); padding:10px 12px; border-radius:8px; border:1px dashed rgba(56,189,248,0.4);">
+                    <div style="font-size:0.75rem; color:#38BDF8; font-weight:700; text-transform:uppercase;">🎯 High-Converting Gujarati Hook:</div>
+                    <div style="font-size:1.05rem; font-weight:700; color:#FFD700; font-family:'Noto Sans Gujarati', sans-serif; margin-top:2px;">
+                        "{idea.get('gujarati_hook')}"
+                    </div>
+                </div>
+                <div style="font-size:0.8rem; color:#94A3B8; margin-top:8px;">
+                    <b>💡 Algorithmic Trigger:</b> {idea.get('why_it_works')}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    with st.expander("📈 Step-by-Step Algorithm Action Checklist", expanded=False):
+        st.markdown("##### 🛠️ Immediate Editing & Posting Optimizations")
+        action_fixes = report.get("immediate_action_fixes", [])
+        for idx, fix in enumerate(action_fixes, 1):
+            st.checkbox(f"**Step {idx}:** {fix}", value=False, key=f"algo_fix_chk_{idx}")
+
+
+# =============================================================================
+# TAB 5: QUICK TTS — Direct Text to Speech
+# =============================================================================
+with tab5:
     st.markdown("### 🎙️ Quick TTS — ગુજરાતી ટેક્સ્ટ થી વૉઇસ")
     st.caption("સીધું ગુજરાતી ટેક્સ્ટ લખો, અવાજ પસંદ કરો, અને ઑડિયો જનરેટ કરો. 100% લોકલ, ફ્રી, પ્રાઇવેટ.")
 
