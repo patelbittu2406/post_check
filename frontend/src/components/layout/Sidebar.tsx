@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Film, 
-  Layers, 
+  Lightbulb, 
   BarChart3, 
+  Radio, 
   Settings, 
   ChevronLeft, 
   ChevronRight, 
@@ -17,9 +18,10 @@ import {
 import { useStore } from "@/store/useStore";
 
 const navItems = [
-  { name: "Studio", path: "/dashboard", icon: Film, badge: "Live" },
-  { name: "Library", path: "/library", icon: Layers },
+  { name: "Studio", path: "/dashboard", icon: Film, badge: "3-Step" },
+  { name: "News Ideas", path: "/ideas", icon: Lightbulb, badge: "Viral" },
   { name: "Analytics", path: "/analytics", icon: BarChart3 },
+  { name: "Live Stream", path: "/live-stream", icon: Radio, badge: "24/7" },
   { name: "Settings", path: "/settings", icon: Settings },
 ];
 
@@ -38,9 +40,9 @@ export function Sidebar() {
       <div className="flex items-center justify-between p-4 border-b border-border h-16">
         <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden group">
           <div className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md ring-2 ring-brand-pink/30 group-hover:scale-105 transition-transform duration-200">
-            {/* SVG Logo display */}
+            {/* Logo display */}
             <img 
-              src="/logo.svg" 
+              src="/logo.png" 
               alt="Prarambh Logo" 
               className="w-10 h-10 object-contain drop-shadow"
             />

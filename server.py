@@ -4,6 +4,7 @@ Wraps the Surat News Reel Engine V2 core modules and exposes REST API endpoints.
 """
 
 import os
+import re
 import sys
 import time
 import json
@@ -41,6 +42,7 @@ from core.ig_publisher import InstagramPublisher
 from core.ig_analytics import InstagramAnalyticsEngine
 from core.ig_advisor import GeminiGrowthAdvisor
 from core.capcut_auto_editor import CapCutAutoEditor
+from core.surat_news_engine import surat_news_engine, SuratViralNewsItem
 
 
 app = FastAPI(
@@ -159,6 +161,7 @@ class VoiceGenerationRequest(BaseModel):
     voice_profile_id: Optional[str] = None
     allow_adaptive_fallback: bool = True
     voice_settings: Optional[VoiceFlowSettings] = None
+    model_id: Optional[str] = "eleven_multilingual_v2"
 
 
 class VoiceGenerateAPIRequest(BaseModel):
@@ -166,13 +169,14 @@ class VoiceGenerateAPIRequest(BaseModel):
     script_text: Optional[str] = None
     voice_id: str = "PRARAMBH_MALE"
     voice_settings: Optional[VoiceFlowSettings] = None
-    model_id: str = "indicf5"
+    model_id: str = "eleven_multilingual_v2"
 
 
 class VoicePreviewAPIRequest(BaseModel):
     text: str = "નમસ્કાર, સુરતના તાજા સમાચાર."
     voice_id: str = "PRARAMBH_MALE"
     settings: Optional[VoiceFlowSettings] = None
+    model_id: Optional[str] = "eleven_multilingual_v2"
 
 
 class RenderVideoRequest(BaseModel):
@@ -818,15 +822,23 @@ def auto_tag_script_endpoint(req: AutoTagScriptRequest):
 @app.post("/api/voice/generate")
 def api_voice_generate(req: VoiceGenerateAPIRequest):
     try:
-        input_text = (req.text or req.script_text or "").strip()
-        if not input_text:
+        raw_text = (req.text or req.script_text or "").strip()
+        if not raw_text:
             raise HTTPException(status_code=400, detail="Text or script_text is required")
+        # Clean text: strip bracketed emotion tags like [excited], [happy], [serious], [pauses]
+        clean_text = re.sub(r'\[.*?\]', '', raw_text)
+        clean_text = clean_text.replace("...", " — ")
+        clean_text = re.sub(r'<.*?>', '', clean_text)
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+        if not clean_text:
+            raise HTTPException(status_code=400, detail="Text is empty after stripping bracketed tags")
+
         settings_dict = req.voice_settings.model_dump() if req.voice_settings else None
         res = voice_engine.generate(
-            text=input_text,
+            text=clean_text,
             voice_id=req.voice_id,
             settings=settings_dict,
-            model_id=req.model_id
+            model_id="eleven_multilingual_v2",
         )
         return {"success": True, "status": "success", **res}
     except HTTPException:
@@ -838,11 +850,17 @@ def api_voice_generate(req: VoiceGenerateAPIRequest):
 @app.post("/api/voice/preview")
 def api_voice_preview(req: VoicePreviewAPIRequest):
     try:
+        raw_text = req.text or ""
+        clean_text = re.sub(r'\[.*?\]', '', raw_text)
+        clean_text = clean_text.replace("...", " — ")
+        clean_text = re.sub(r'<.*?>', '', clean_text)
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
         settings_dict = req.settings.model_dump() if req.settings else None
         res = voice_engine.preview(
-            text=req.text,
+            text=clean_text,
             voice_id=req.voice_id,
-            settings=settings_dict
+            settings=settings_dict,
+            model_id="eleven_multilingual_v2",
         )
         return {"success": True, "status": "success", **res}
     except Exception as e:
@@ -853,12 +871,18 @@ def api_voice_preview(req: VoicePreviewAPIRequest):
 def generate_voice(req: VoiceGenerationRequest):
     try:
         target_voice = req.voice_profile_id or req.voice_mode or "PRARAMBH_MALE"
+        raw_text = req.script_text or ""
+        clean_text = re.sub(r'\[.*?\]', '', raw_text)
+        clean_text = clean_text.replace("...", " — ")
+        clean_text = re.sub(r'<.*?>', '', clean_text)
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
         settings_dict = req.voice_settings.model_dump() if req.voice_settings else None
         
         result = voice_engine.generate(
-            text=req.script_text,
+            text=clean_text,
             voice_id=target_voice,
-            settings=settings_dict
+            settings=settings_dict,
+            model_id="eleven_multilingual_v2",
         )
         return {"success": True, "status": "success", **result}
     except Exception as e:
@@ -1244,6 +1268,47 @@ def get_instagram_growth_audit(payload: Optional[Dict[str, Any]] = None):
         reels_data=reels_data,
         api_key=api_key
     )
+
+
+class SuratNewsFeedRequest(BaseModel):
+    category: Optional[str] = "ALL"
+    area: Optional[str] = "ALL"
+    count: Optional[int] = 5
+    offset: Optional[int] = 0
+    query: Optional[str] = None
+    force_refresh: Optional[bool] = False
+    api_key: Optional[str] = None
+
+
+@app.get("/api/surat-news/viral-feed")
+@app.post("/api/surat-news/viral-feed")
+def get_surat_viral_news_feed(
+    req: Optional[SuratNewsFeedRequest] = None,
+    category: Optional[str] = "ALL",
+    area: Optional[str] = "ALL",
+    count: int = 5,
+    offset: int = 0,
+    query: Optional[str] = None,
+    force_refresh: bool = False
+):
+    cat = req.category if (req and req.category) else category
+    ar = req.area if (req and req.area) else area
+    cnt = req.count if (req and req.count) else count
+    off = req.offset if (req and req.offset is not None) else offset
+    q = req.query if (req and req.query) else query
+    fr = req.force_refresh if (req and req.force_refresh is not None) else force_refresh
+    ak = req.api_key if (req and req.api_key) else None
+
+    feed = surat_news_engine.get_viral_news_feed(
+        category=cat,
+        area=ar,
+        count=cnt,
+        offset=off,
+        query=q,
+        force_refresh=fr,
+        api_key=ak
+    )
+    return feed.model_dump()
 
 
 # -----------------------------------------------------------------------------

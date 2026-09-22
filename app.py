@@ -156,14 +156,14 @@ st.markdown('<div class="main-header">Surat News Reel Engine <span style="font-s
 st.markdown('<div class="sub-header">Automated Multi-LLM Newsroom: Dual-Stripe Headlines, Custom Voice Cloning, Multi-Clip Auto Splicer & Direct 1-Click Instagram Publishing.</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# Navigation Tabs
+# Navigation Tabs (Strictly 5 Clean Items)
 # -----------------------------------------------------------------------------
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "🎬 Tab 1: Reel Studio",
-    "⚙️ Tab 2: User Profile & Settings",
-    "🎨 Tab 3: Visual & Voice Styling",
-    "📊 Tab 4: Instagram Growth & AI Analytics",
-    "🎙️ Tab 5: Quick TTS"
+    "🎬 Studio",
+    "💡 News Ideas",
+    "📊 Analytics",
+    "📡 Live Stream",
+    "⚙️ Settings"
 ])
 
 # =============================================================================

@@ -21,12 +21,20 @@ from core.ig_analytics import InstagramAnalyticsEngine
 
 class ContentRecommendationItem(BaseModel):
     """Structured schema for fresh viral Gujarati Reel concept."""
+    id: Optional[str] = Field(default=None, description="Unique identifier for the idea")
     idea_title: str = Field(description="Headline / concept title for the Reel in Gujarati or English")
     gujarati_hook: str = Field(description="High-converting first 2-3 second visual & verbal hook in pure Gujarati")
     category_code: str = Field(description="Category code: e.g. T01 (Traffic), C01 (Crime), A01 (Civic/Admin), B01 (Business), N01 (General News), F01 (Festivals)")
     target_area: str = Field(description="Surat neighborhood or locality, e.g. Vesu, Adajan, Katargam, Varachha, Athwalines, Dumas")
-    ideal_length_sec: int = Field(description="Recommended video duration in seconds (typically 25-35s)")
+    ideal_length_sec: int = Field(default=30, description="Recommended video duration in seconds (typically 25-35s)")
     why_it_works: str = Field(description="Explanation of why this concept will trigger high share and save rates in Surat")
+    description: Optional[str] = Field(default=None, description="Detailed 3-4 sentence factual news story and background context in Gujarati")
+    key_facts: Optional[List[str]] = Field(default_factory=list, description="2-4 critical factual bullet points")
+    voiceover_script: Optional[str] = Field(default=None, description="Broadcast-ready spoken Gujarati script with emotional audio tags")
+    caption: Optional[str] = Field(default=None, description="Instagram caption with hashtags")
+    line1_headline: Optional[str] = Field(default=None, description="Dual-stripe line 1 headline")
+    line2_headline: Optional[str] = Field(default=None, description="Dual-stripe line 2 headline")
+    verified_true: Optional[bool] = Field(default=True, description="Authentic, true news tag")
 
 
 class GrowthAuditReport(BaseModel):
@@ -216,47 +224,27 @@ Please perform an in-depth Instagram Algorithm & Content Strategy Audit for our 
             "Dynamic ASS Word-Level Highlights: Videos using yellow word-by-word active bounce styling retained viewers 4.2s longer than static subtitle tracks."
         ]
 
+        # Fetch enriched recommendations from Surat News Engine
+        from core.surat_news_engine import surat_news_engine
+        feed = surat_news_engine.get_viral_news_feed(count=5)
         recommendations = [
             ContentRecommendationItem(
-                idea_title="સુરત મેટ્રો લાઇન-૨ અપડેટ: નવા સ્ટેશનોની યાદી",
-                gujarati_hook="તમારા વિસ્તારમાં મેટ્રો સ્ટેશન ક્યાં આવશે? જાણી લો આ 30 સેકન્ડમાં! 🚇",
-                category_code="T01",
-                target_area="Adajan",
-                ideal_length_sec=28,
-                why_it_works="High utility & neighborhood relevance triggers massive WhatsApp family group shares and bookmarks."
-            ),
-            ContentRecommendationItem(
-                idea_title="વેસુમાં રાત્રે ટ્રાફિક ડાયવર્ઝન અને નવીન પાર્કિંગ નિયમો",
-                gujarati_hook="આજ રાતથી વેસુ વીઆઈપી રોડ પર નવો નિયમ! દંડથી બચવા જોઈ લો 🚨",
-                category_code="T01",
-                target_area="Vesu",
-                ideal_length_sec=26,
-                why_it_works="Urgent local advisory triggers instant local community shares and high urgency watch time."
-            ),
-            ContentRecommendationItem(
-                idea_title="સુરત મ્યુનિસિપલ કોર્પોરેશન સબસિડી પોર્ટલ શરૂ",
-                gujarati_hook="સોલાર પેનલ પર ₹78,000 સબસિડી! આ રીતે કરો 2 મિનિટમાં અરજી ⚡",
-                category_code="A01",
-                target_area="Katargam",
-                ideal_length_sec=32,
-                why_it_works="Actionable financial benefit triggers exceptionally high save rate (>4.5%) for reference."
-            ),
-            ContentRecommendationItem(
-                idea_title="ડાયમંડ રિસર્ચ એન્ડ મર્કન્ટાઇલ (DREAM) સિટીમાં 5000 નવી નોકરીઓ",
-                gujarati_hook="ખજોદ ખાતે હીરા ઉદ્યોગમાં મોટો ઉછાળો! યુવાનો માટે નવી તકો 💎",
-                category_code="B01",
-                target_area="Khajod",
-                ideal_length_sec=30,
-                why_it_works="Appeals directly to the dominant 25-34 demographic seeking business and career developments in Surat."
-            ),
-            ContentRecommendationItem(
-                idea_title="અઠવાલાઇન્સ ચોપાટી પર નવો ફૂડ ફેસ્ટિવલ",
-                gujarati_hook="સુરતી ફૂડ લવર્સ માટે ખુશખબર! આ વીકેન્ડ પર શું ખાસ છે? 🍲",
-                category_code="F01",
-                target_area="Athwalines",
-                ideal_length_sec=25,
-                why_it_works="Weekend lifestyle and festival appeal triggers high engagement among 18-34 demographic."
+                id=item.id,
+                idea_title=item.idea_title,
+                gujarati_hook=item.gujarati_hook,
+                category_code=item.category_code,
+                target_area=item.target_area,
+                ideal_length_sec=item.ideal_length_sec,
+                why_it_works=item.why_it_works,
+                description=item.description,
+                key_facts=item.key_facts,
+                voiceover_script=item.voiceover_script,
+                caption=item.caption,
+                line1_headline=item.line1_headline,
+                line2_headline=item.line2_headline,
+                verified_true=item.verified_true
             )
+            for item in feed.news_items
         ]
 
         action_fixes = [

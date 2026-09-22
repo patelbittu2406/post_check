@@ -37,9 +37,11 @@ export function Topbar() {
       }[sub] || sub;
       return ["Settings", subName];
     }
-    if (pathname === "/library") return ["Media", "Reels Library"];
+    if (pathname === "/ideas") return ["News Ideas", "Daily Viral Topics"];
+    if (pathname === "/live-stream") return ["Live Stream", "24/7 TV News Broadcast"];
     if (pathname === "/analytics") return ["Analytics", "Publishing Insights"];
-    return ["Prarambh", "Studio"];
+    if (pathname === "/library") return ["Media", "Reels Library"];
+    return ["Studio", "3-Step Workflow"];
   };
 
   const crumbs = getBreadcrumbs();

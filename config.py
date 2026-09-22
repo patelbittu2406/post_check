@@ -18,6 +18,8 @@ if venv_bin not in os.environ.get("PATH", ""):
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "d2osXrwa36lUEkuaO4sP")
 
 INSTAGRAM_BUSINESS_ACCOUNT_ID = os.getenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
 FACEBOOK_PAGE_ACCESS_TOKEN = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN", "")
@@ -58,6 +60,15 @@ INDICF5_MALE_REF_AUDIO = VOICES_DIR / "prarambh_male_ref.wav"
 INDICF5_FEMALE_REF_AUDIO = VOICES_DIR / "prarambh_female_ref.wav"
 VOICE_REGISTRY_PATH = VOICES_DIR / "voice_registry.json"
 
+# ---------------------------------------------------------------------------
+# F5-TTS Ultra-Realistic Voice Engine (Zero-Shot Voice Cloning)
+# ---------------------------------------------------------------------------
+F5TTS_MODEL_TYPE = os.getenv("F5TTS_MODEL_TYPE", "F5TTS_v1_Base")
+F5TTS_REF_AUDIO_BANDPASS_LOW = 80     # Hz — preserves vocal warmth
+F5TTS_REF_AUDIO_BANDPASS_HIGH = 8000  # Hz — removes harsh high-frequency artifacts
+F5TTS_NFE_STEP = int(os.getenv("F5TTS_NFE_STEP", "32"))  # Diffusion inference steps (16-32)
+
+
 def load_user_profile() -> dict:
     """Loads user profile settings with fallback to environment variables."""
     profile = {
@@ -72,9 +83,10 @@ def load_user_profile() -> dict:
         "voice_settings": {
             "speed": 1.0,
             "pitch": 0.0,
-            "stability": 0.35,
-            "similarity_boost": 0.80,
-            "style": 0.45,
+            "stability": 0.65,
+            "similarity_boost": 0.85,
+            "style": 0.15,
+            "use_speaker_boost": True,
             "pause_duration": 0.5,
             "emphasis_strength": 0.5
         },

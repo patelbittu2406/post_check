@@ -116,7 +116,7 @@ export function PhonePreview() {
                   "bottom-24 right-2"
                 }`}>
                   <img
-                    src="/logo.svg"
+                    src="/logo.png"
                     alt="Prarambh Watermark"
                     style={{ opacity: watermarkOpacity }}
                     className="w-9 h-9 object-contain drop-shadow-md"

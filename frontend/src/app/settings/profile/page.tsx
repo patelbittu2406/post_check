@@ -54,7 +54,7 @@ export default function ProfileSettingsPage() {
           <div className="flex items-center gap-5 p-4 rounded-xl bg-bg-elevated/60 border border-border">
             <div className="relative w-16 h-16 rounded-full ring-2 ring-brand-pink/50 p-1 shrink-0 bg-bg-surface">
               <img 
-                src="/logo.svg" 
+                src="/logo.png" 
                 alt="Channel Avatar" 
                 className="w-full h-full object-contain rounded-full"
               />

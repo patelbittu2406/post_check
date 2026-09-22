@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { fetchAnalytics, fetchInstagramGrowthAudit } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { fetchAnalytics, fetchInstagramGrowthAudit, fetchViralSuratNews, SuratViralNewsItem } from "@/lib/api";
 import { useStore } from "@/store/useStore";
 import { toast } from "sonner";
 import { 
@@ -29,7 +30,20 @@ import {
   ShieldAlert,
   Loader2,
   MapPin,
-  CheckSquare
+  CheckSquare,
+  Copy,
+  Check,
+  PlusCircle,
+  FileText,
+  Search,
+  Filter,
+  Layers,
+  ArrowRight,
+  Send,
+  BadgeCheck,
+  Volume2,
+  Hash,
+  Compass
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -44,11 +58,22 @@ import {
 } from "recharts";
 
 export default function AnalyticsPage() {
-  const { profile } = useStore();
+  const router = useRouter();
+  const { profile, updateDraft } = useStore();
   const [data, setData] = useState<any>(null);
   const [growthAudit, setGrowthAudit] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [auditing, setAuditing] = useState(false);
+
+  // Surat Viral News Feed state
+  const [newsFeed, setNewsFeed] = useState<SuratViralNewsItem[]>([]);
+  const [isNewsLoading, setIsNewsLoading] = useState<boolean>(false);
+  const [isNewsLoadingMore, setIsNewsLoadingMore] = useState<boolean>(false);
+  const [selectedNewsCategory, setSelectedNewsCategory] = useState<string>("ALL");
+  const [selectedNewsArea, setSelectedNewsArea] = useState<string>("ALL");
+  const [newsSearchQuery, setNewsSearchQuery] = useState<string>("");
+  const [expandedDetails, setExpandedDetails] = useState<{ [key: string]: boolean }>({ "item_0": true, "surat_news_t01_01": true });
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   
   // Interactive accordion states for Gemini Insights
   const [openSection, setOpenSection] = useState<{ [key: string]: boolean }>({
@@ -67,6 +92,110 @@ export default function AnalyticsPage() {
 
   const toggleChecklist = (idx: number) => {
     setCheckedItems(prev => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const loadSuratNews = async (
+    isRefresh: boolean = false,
+    cat: string = selectedNewsCategory,
+    ar: string = selectedNewsArea,
+    q: string = newsSearchQuery
+  ) => {
+    setIsNewsLoading(true);
+    try {
+      const res = await fetchViralSuratNews({
+        category: cat === "ALL" ? undefined : cat,
+        area: ar === "ALL" ? undefined : ar,
+        query: q.trim() || undefined,
+        count: 5,
+        offset: 0,
+        force_refresh: isRefresh,
+        api_key: profile.gemini_api_key
+      });
+      if (res && res.news_items && res.news_items.length > 0) {
+        setNewsFeed(res.news_items);
+        const firstId = res.news_items[0].id || "item_0";
+        setExpandedDetails(prev => ({ ...prev, [firstId]: true }));
+      }
+    } catch (err: any) {
+      console.warn("Surat news feed error:", err);
+    } finally {
+      setIsNewsLoading(false);
+    }
+  };
+
+  const handleGetMoreNews = async () => {
+    setIsNewsLoadingMore(true);
+    const toastId = toast.loading("🔄 વધુ 5 સુરત વાયરલ ન્યૂઝ લાવી રહ્યા છીએ...");
+    try {
+      const res = await fetchViralSuratNews({
+        category: selectedNewsCategory === "ALL" ? undefined : selectedNewsCategory,
+        area: selectedNewsArea === "ALL" ? undefined : selectedNewsArea,
+        query: newsSearchQuery.trim() || undefined,
+        count: 5,
+        offset: newsFeed.length,
+        force_refresh: false,
+        api_key: profile.gemini_api_key
+      });
+      if (res && res.news_items && res.news_items.length > 0) {
+        setNewsFeed(prev => [...prev, ...res.news_items]);
+        toast.success(`✨ વધુ 5 સમાચાર ઉમેરાયા! (કુલ: ${newsFeed.length + res.news_items.length})`, { id: toastId });
+      } else {
+        toast.info("વધુ સમાચાર ઉપલબ્ધ નથી.", { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error(`સમાચાર મેળવવામાં ભૂલ: ${err.message}`, { id: toastId });
+    } finally {
+      setIsNewsLoadingMore(false);
+    }
+  };
+
+  const handleRefreshNews = async () => {
+    const toastId = toast.loading("⚡ સુરત સંબંધિત તાજા 5 વાયરલ સમાચાર આવી રહ્યા છે...");
+    await loadSuratNews(true, selectedNewsCategory, selectedNewsArea, newsSearchQuery);
+    toast.success("✅ તાજા 5 વાયરલ સમાચાર અપડેટ થયા!", { id: toastId });
+  };
+
+  const handleCategoryFilter = (cat: string) => {
+    setSelectedNewsCategory(cat);
+    loadSuratNews(false, cat, selectedNewsArea, newsSearchQuery);
+  };
+
+  const handleAreaFilter = (ar: string) => {
+    setSelectedNewsArea(ar);
+    loadSuratNews(false, selectedNewsCategory, ar, newsSearchQuery);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    loadSuratNews(false, selectedNewsCategory, selectedNewsArea, newsSearchQuery);
+  };
+
+  const handleApplyToStudio = (item: any) => {
+    updateDraft({
+      rawDetails: item.description || item.idea_title,
+      line1Headline: item.line1_headline || item.idea_title,
+      line2Headline: item.line2_headline || item.gujarati_hook,
+      voiceoverScript: item.voiceover_script || `[excited] ${item.gujarati_hook} [pauses] ${item.description || ""}`,
+      caption: item.caption || `SURAT UPDATE | ${item.category_code}\nLocation: ${item.target_area}, Surat\n\nશું થયું?\n${item.idea_title}\n\n#SuratNews #${item.target_area}`,
+      categoryCode: item.category_code || "N01",
+      area: item.target_area || "All Surat (સમગ્ર સુરત)",
+      targetDuration: item.ideal_length_sec || 30,
+    });
+    toast.success("🚀 આ સમાચાર Studio માં લોડ થઈ ગયા છે! Reel બનાવવા માટે Studio ખુલી રહ્યું છે...", {
+      duration: 3000,
+    });
+    router.push("/dashboard");
+  };
+
+  const copyText = (text: string, label: string, keyId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(keyId);
+    toast.success(`📋 ${label} કોપી થઈ ગયું!`);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const toggleItemDetails = (id: string) => {
+    setExpandedDetails(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const loadAllAnalytics = async (triggerAudit: boolean = false) => {
@@ -101,6 +230,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     loadAllAnalytics(false);
+    loadSuratNews(false);
   }, [profile.gemini_api_key]);
 
   // Derived Demographics Data
@@ -599,64 +729,375 @@ export default function AnalyticsPage() {
             )}
           </div>
 
-          {/* Expander 3: Next 5 Viral Content Ideas (with Gujarati Hooks) */}
+          {/* Expander 3: Daily Authentic Surat Viral News Feed & Reel Studio Ideas */}
           <div className="rounded-2xl bg-bg-surface border border-border shadow-sm overflow-hidden transition-all">
-            <button
-              type="button"
-              onClick={() => toggleSection("ideas")}
-              className="w-full p-5 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-brand-pink/15 text-brand-pink flex items-center justify-center">
-                  <Lightbulb className="w-4 h-4" />
+            <div className="w-full p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 bg-gradient-to-r from-bg-surface via-bg-elevated/40 to-bg-surface">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => toggleSection("ideas")}>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-pink to-brand-cyan text-white flex items-center justify-center shadow-md shadow-brand-pink/20">
+                  <Flame className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">💡 Next 5 Viral Content Ideas (with full Gujarati Hooks)</h3>
-                  <p className="text-[11px] text-text-muted">High-retention hyperlocal concepts tailored for Surat news</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-extrabold text-text-primary">
+                      🔥 સુરત વાયરલ ન્યૂઝ રીલ્સ આઈડિયાઝ (Daily Authentic Viral News)
+                    </h3>
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-success/15 text-accent-success border border-accent-success/30 items-center gap-1">
+                      <BadgeCheck className="w-3 h-3" /> 100% સાચા અને પ્રમાણિત સમાચાર
+                    </span>
+                  </div>
+                  <p className="text-xs text-text-muted">
+                    રોજિંદા 5 સત્ય, ઉપયોગી અને હાઈ-શેર વાયરલ સમાચાર | સ્ક્રિપ્ટ, કેપ્શન અને વિગતવાર ડિસ્ક્રિપ્શન સાથે
+                  </p>
                 </div>
               </div>
-              {openSection.ideas ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
-            </button>
+
+              {/* Action Buttons: Refresh & Get More News */}
+              <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={handleRefreshNews}
+                  disabled={isNewsLoading}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-bg-elevated hover:bg-border text-text-primary border border-border/80 flex items-center gap-2 hover:border-brand-cyan/50 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                  title="તાજા 5 સમાચાર રિફ્રેશ કરો"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-brand-cyan ${isNewsLoading ? "animate-spin" : ""}`} />
+                  <span>{isNewsLoading ? "લોડિંગ..." : "🔄 રિફ્રેશ (Refresh 5 News)"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleGetMoreNews}
+                  disabled={isNewsLoadingMore}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-brand-pink to-pink-600 hover:from-brand-pink/90 hover:to-pink-700 text-white flex items-center gap-2 shadow-sm shadow-brand-pink/30 transition-all active:scale-95 disabled:opacity-50"
+                  title="લિસ્ટમાં વધુ 5 નવા સમાચાર ઉમેરો"
+                >
+                  {isNewsLoadingMore ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <PlusCircle className="w-3.5 h-3.5" />
+                  )}
+                  <span>વધુ 5 સમાચાર લાવો (Get More News)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => toggleSection("ideas")}
+                  className="p-2 rounded-xl bg-bg-elevated hover:bg-border text-text-muted transition-colors ml-1"
+                >
+                  {openSection.ideas ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
 
             {openSection.ideas && (
-              <div className="p-5 pt-0 space-y-3.5 border-t border-border/60">
-                {audit.content_recommendation_plan?.map((idea: any, i: number) => (
-                  <div key={i} className="p-4 rounded-2xl bg-bg-elevated border border-border/80 space-y-2.5 hover:border-brand-pink/40 transition-all">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-brand-pink text-white font-black text-xs flex items-center justify-center">
-                          {i}
-                        </span>
-                        <h4 className="text-sm font-extrabold font-gujarati text-text-primary">
-                          {idea.idea_title}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">
-                          {idea.category_code}
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-pink/15 text-brand-pink border border-brand-pink/30">
-                          📍 {idea.target_area}
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-yellow/15 text-brand-yellow border border-brand-yellow/30 font-mono">
-                          ⏱️ {idea.ideal_length_sec}s
-                        </span>
-                      </div>
+              <div className="p-5 space-y-5">
+                {/* Search & Category Filter Toolbar */}
+                <div className="p-4 rounded-xl bg-bg-elevated/70 border border-border space-y-3">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    {/* Category Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                      <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
+                        <Filter className="w-3 h-3 text-brand-cyan" /> કેટેગરી:
+                      </span>
+                      {[
+                        { id: "ALL", label: "બધા (All)" },
+                        { id: "T01", label: "🚦 ટ્રાફિક & મેટ્રો (T01)" },
+                        { id: "A01", label: "🏛️ મનપા & સબસિડી (A01)" },
+                        { id: "B01", label: "💎 ડાયમંડ & વેપાર (B01)" },
+                        { id: "C01", label: "🚨 ક્રાઈમ વોચ (C01)" },
+                        { id: "F01", label: "🍲 ફૂડ & ઉત્સવ (F01)" },
+                        { id: "N01", label: "🌦️ હવામાન & સિટી (N01)" },
+                      ].map(cat => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => handleCategoryFilter(cat.id)}
+                          className={`px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
+                            selectedNewsCategory === cat.id
+                              ? "bg-brand-pink text-white font-bold shadow-sm shadow-brand-pink/40"
+                              : "bg-bg-surface text-text-muted hover:text-text-primary border border-border/60 hover:border-brand-cyan/40"
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
                     </div>
 
-                    {/* High-Converting Gujarati Hook Box */}
-                    <div className="p-3 rounded-xl bg-bg-surface border border-dashed border-brand-cyan/40 space-y-1">
-                      <span className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider">🎯 High-Converting Gujarati Hook:</span>
-                      <p className="text-sm font-bold font-gujarati text-brand-yellow">
-                        "{idea.gujarati_hook}"
-                      </p>
+                    {/* Area Selector Dropdown */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[11px] font-bold text-text-muted flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-brand-pink" /> વિસ્તાર:
+                      </span>
+                      <select
+                        value={selectedNewsArea}
+                        onChange={(e) => handleAreaFilter(e.target.value)}
+                        className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border text-xs text-text-primary font-medium focus:outline-none focus:border-brand-cyan"
+                      >
+                        <option value="ALL">સમગ્ર સુરત (All Surat)</option>
+                        <option value="Adajan">અડાજણ (Adajan)</option>
+                        <option value="Vesu">વેસુ (Vesu)</option>
+                        <option value="Katargam">કતારગામ (Katargam)</option>
+                        <option value="Varachha">વરાછા (Varachha)</option>
+                        <option value="Athwalines">અઠવાલાઇન્સ (Athwalines)</option>
+                        <option value="Khajod">ખજોદ / ડાયમંડ બુર્સ (Khajod)</option>
+                        <option value="Dumas">ડુમસ રોડ (Dumas)</option>
+                        <option value="Pal">પાલ (Pal)</option>
+                        <option value="Nanpura">નાનપુરા (Nanpura)</option>
+                        <option value="Althan">અલ્થાણ (Althan)</option>
+                      </select>
                     </div>
-
-                    <p className="text-xs text-text-muted">
-                      <strong className="text-text-primary">💡 Algorithmic Trigger:</strong> {idea.why_it_works}
-                    </p>
                   </div>
-                ))}
+
+                  {/* Search bar */}
+                  <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 pt-1">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input
+                        type="text"
+                        placeholder="કોઈ ચોક્કસ વિષય પર સમાચાર શોધો (દા.ત. મેટ્રો, સબસિડી, વેસુ રોડ, હીરા બુર્સ, વરસાદ)..."
+                        value={newsSearchQuery}
+                        onChange={(e) => setNewsSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-bg-surface border border-border text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-brand-cyan transition-all"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="px-3 py-1.5 rounded-lg bg-brand-cyan/20 hover:bg-brand-cyan/30 text-brand-cyan border border-brand-cyan/40 text-xs font-bold transition-colors shrink-0"
+                    >
+                      શોધો (Search)
+                    </button>
+                  </form>
+                </div>
+
+                {/* News Items List */}
+                <div className="space-y-4">
+                  {(newsFeed.length > 0 ? newsFeed : (audit.content_recommendation_plan || [])).map((idea: any, i: number) => {
+                    const itemId = idea.id || `item_${i}`;
+                    const isExpanded = Boolean(expandedDetails[itemId]);
+                    const keyFacts = idea.key_facts || [];
+
+                    return (
+                      <div
+                        key={itemId}
+                        className="p-5 rounded-2xl bg-bg-elevated border border-border/80 space-y-4 hover:border-brand-pink/50 transition-all shadow-sm"
+                      >
+                        {/* Top Metadata Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div className="flex items-start sm:items-center gap-2.5">
+                            <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-brand-pink to-pink-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm shadow-brand-pink/30">
+                              #{i + 1}
+                            </span>
+                            <div>
+                              <h4 className="text-sm font-extrabold font-gujarati text-text-primary leading-snug">
+                                {idea.idea_title}
+                              </h4>
+                              {idea.source_department && (
+                                <p className="text-[10px] text-text-muted flex items-center gap-1 mt-0.5">
+                                  <BadgeCheck className="w-3 h-3 text-brand-cyan" />
+                                  સ્રોત: {idea.source_department}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">
+                              {idea.category_code}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-pink/15 text-brand-pink border border-brand-pink/30">
+                              📍 {idea.target_area}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-yellow/15 text-brand-yellow border border-brand-yellow/30 font-mono">
+                              ⏱️ {idea.ideal_length_sec || 30}s
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-accent-success/15 text-accent-success border border-accent-success/30">
+                              ✓ Authentic
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* High-Converting Gujarati Hook Box */}
+                        <div className="p-3.5 rounded-xl bg-bg-surface border border-dashed border-brand-cyan/50 space-y-1.5 relative group">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" /> 🎯 HIGH-CONVERTING GUJARATI HOOK (વાયરલ હૂક):
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => copyText(idea.gujarati_hook, "ગુજરાતી હૂક", `hook_${itemId}`)}
+                              className="text-[10px] text-text-muted hover:text-brand-cyan flex items-center gap-1 font-medium transition-colors"
+                            >
+                              {copiedKey === `hook_${itemId}` ? (
+                                <Check className="w-3 h-3 text-accent-success" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                              <span>કોપી હૂક</span>
+                            </button>
+                          </div>
+                          <p className="text-sm font-bold font-gujarati text-brand-yellow leading-relaxed">
+                            "{idea.gujarati_hook}"
+                          </p>
+                        </div>
+
+                        {/* Algorithmic Trigger */}
+                        <div className="text-xs text-text-muted bg-bg-surface/50 p-2.5 rounded-lg border border-border/40">
+                          <strong className="text-text-primary">💡 Algorithmic Trigger (શેર & સેવ વધશે):</strong>{" "}
+                          <span>{idea.why_it_works}</span>
+                        </div>
+
+                        {/* Collapsible Rich Description & Reel Script Section */}
+                        <div className="rounded-xl border border-border/70 overflow-hidden bg-bg-surface/70">
+                          <button
+                            type="button"
+                            onClick={() => toggleItemDetails(itemId)}
+                            className="w-full p-3 px-4 flex items-center justify-between text-left hover:bg-bg-elevated/80 transition-colors"
+                          >
+                            <span className="text-xs font-bold text-text-primary flex items-center gap-2">
+                              <FileText className="w-3.5 h-3.5 text-brand-pink" />
+                              <span>📖 સંપૂર્ણ ન્યૂઝ સ્ટોરી, સ્ક્રિપ્ટ અને કેપ્શન (Full Description & Script)</span>
+                            </span>
+                            <div className="flex items-center gap-1 text-[11px] text-brand-cyan font-semibold">
+                              <span>{isExpanded ? "ઓછું જુઓ" : "વિગતવાર જુઓ"}</span>
+                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="p-4 pt-0 space-y-3.5 border-t border-border/60 text-xs">
+                              {/* 1. News Story & Facts */}
+                              <div className="space-y-1.5 pt-3">
+                                <h5 className="font-bold text-brand-cyan flex items-center gap-1 text-xs">
+                                  📰 વિગતવાર સમાચાર અને સત્ય તથ્યો (News Context):
+                                </h5>
+                                <p className="text-text-primary font-gujarati leading-relaxed bg-bg-elevated p-3 rounded-lg border border-border/50">
+                                  {idea.description || "સુરત મહાનગરપાલિકા અને સત્તાવાર તંત્ર દ્વારા જાહેર કરાયેલ માહિતી મુજબ આ પ્રોજેક્ટથી સ્થાનિક નાગરિકોને સીધો મોટો ફાયદો થશે."}
+                                </p>
+                              </div>
+
+                              {/* 2. Key Facts Bullet Points */}
+                              {keyFacts && keyFacts.length > 0 && (
+                                <div className="space-y-1.5">
+                                  <h5 className="font-bold text-brand-yellow flex items-center gap-1 text-[11px]">
+                                    📌 મહત્વના મુદ્દાઓ (Key Bullet Points):
+                                  </h5>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {keyFacts.map((fact: string, idx: number) => (
+                                      <div key={idx} className="p-2 rounded bg-bg-elevated/80 border border-border/40 text-[11px] text-text-primary font-gujarati flex items-center gap-1.5">
+                                        <span className="text-brand-yellow">•</span> {fact}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 3. Voiceover Script with Audio Tags */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <h5 className="font-bold text-accent-success flex items-center gap-1 text-xs">
+                                    <Volume2 className="w-3.5 h-3.5" /> 🎙️ બોલવા માટે સ્ક્રિપ્ટ (Voiceover Script with Audio Tags):
+                                  </h5>
+                                  <button
+                                    type="button"
+                                    onClick={() => copyText(idea.voiceover_script || `[excited] ${idea.gujarati_hook} [pauses] ${idea.description || ""}`, "સ્ક્રિપ્ટ", `script_${itemId}`)}
+                                    className="text-[10px] text-text-muted hover:text-accent-success flex items-center gap-1 font-medium transition-colors"
+                                  >
+                                    {copiedKey === `script_${itemId}` ? (
+                                      <Check className="w-3 h-3 text-accent-success" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                    <span>કોપી સ્ક્રિપ્ટ</span>
+                                  </button>
+                                </div>
+                                <div className="p-3 rounded-lg bg-bg-elevated font-gujarati text-text-primary leading-relaxed border border-accent-success/20 text-xs">
+                                  {idea.voiceover_script || `[excited] ${idea.gujarati_hook} [pauses] ${idea.description || "સુરતના મહત્વના સમાચારો જાણવા જોડાયેલા રહો."}`}
+                                </div>
+                              </div>
+
+                              {/* 4. Instagram Caption & Hashtags */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <h5 className="font-bold text-brand-pink flex items-center gap-1 text-xs">
+                                    <Hash className="w-3.5 h-3.5" /> 📝 ઇન્સ્ટાગ્રામ કેપ્શન & વાયરલ હેશટેગ્સ (Universal SOP Caption):
+                                  </h5>
+                                  <button
+                                    type="button"
+                                    onClick={() => copyText(idea.caption || `SURAT UPDATE | ${idea.category_code}\nLocation: ${idea.target_area}, Surat\n\nશું થયું?\n${idea.idea_title}\n\n#SuratNews #${idea.target_area}`, "કેપ્શન", `caption_${itemId}`)}
+                                    className="text-[10px] text-text-muted hover:text-brand-pink flex items-center gap-1 font-medium transition-colors"
+                                  >
+                                    {copiedKey === `caption_${itemId}` ? (
+                                      <Check className="w-3 h-3 text-accent-success" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                    <span>કોપી કેપ્શન</span>
+                                  </button>
+                                </div>
+                                <pre className="p-3 rounded-lg bg-bg-elevated font-mono text-[11px] text-text-muted leading-relaxed border border-border/50 whitespace-pre-wrap">
+                                  {idea.caption || `SURAT UPDATE | ${idea.category_code}\nLocation: ${idea.target_area}, Surat\n\nશું થયું?\n${idea.idea_title}\n\n#SuratNews #Surat #${idea.target_area}`}
+                                </pre>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Card Action Bar */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => toggleItemDetails(itemId)}
+                            className="text-xs font-semibold text-text-muted hover:text-text-primary flex items-center gap-1.5 transition-colors"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-brand-cyan" />
+                            <span>{isExpanded ? "ઓછી વિગતો છુપાવો" : "સંપૂર્ણ વિગતો & સ્ક્રિપ્ટ જુઓ"}</span>
+                          </button>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const fullKit = `【સમાચાર શીર્ષક】\n${idea.idea_title}\n\n【હૂક】\n${idea.gujarati_hook}\n\n【સ્ક્રિપ્ટ】\n${idea.voiceover_script || idea.description}\n\n【કેપ્શન】\n${idea.caption || ''}`;
+                                copyText(fullKit, "સંપૂર્ણ રીલ ડેટા", `all_${itemId}`);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-border text-text-primary border border-border text-xs font-semibold flex items-center gap-1.5 transition-all"
+                            >
+                              <Copy className="w-3 h-3 text-text-muted" />
+                              <span>Copy All</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleApplyToStudio(idea)}
+                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-pink via-purple-600 to-brand-cyan hover:opacity-95 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-brand-pink/20 transition-all hover:scale-[1.02] active:scale-95"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>🚀 Reel બનાવો (Apply to Studio)</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Bottom Load More Button */}
+                <div className="pt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={handleGetMoreNews}
+                    disabled={isNewsLoadingMore}
+                    className="px-6 py-2.5 rounded-xl text-xs font-bold bg-bg-elevated hover:bg-border text-text-primary border border-border/80 inline-flex items-center gap-2 hover:border-brand-pink/40 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                  >
+                    {isNewsLoadingMore ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-brand-pink" />
+                    ) : (
+                      <PlusCircle className="w-4 h-4 text-brand-pink" />
+                    )}
+                    <span>વધુ 5 વાયરલ સમાચાર લાવો (Get More News Ideas)</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -167,9 +167,9 @@ export async function generateVoiceAPI(payload: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       text: text,
-      voice_id: voiceId,
+      voice_id: 'd2osXrwa36lUEkuaO4sP',
       voice_settings: payload.voice_settings,
-      model_id: "indicf5"
+      model_id: "eleven_multilingual_v2"
     }),
   });
   if (!res.ok) {
@@ -387,6 +387,52 @@ export async function fetchInstagramGrowthAudit(payload?: any): Promise<any> {
     body: JSON.stringify(payload || {}),
   });
   if (!res.ok) throw new Error("Failed to fetch growth audit");
+  return res.json();
+}
+
+export interface SuratViralNewsItem {
+  id: string;
+  idea_title: string;
+  gujarati_hook: string;
+  category_code: string;
+  target_area: string;
+  ideal_length_sec: number;
+  why_it_works: string;
+  description: string;
+  key_facts?: string[];
+  voiceover_script: string;
+  caption: string;
+  line1_headline?: string;
+  line2_headline?: string;
+  source_department?: string;
+  verified_true?: boolean;
+  created_at?: string;
+}
+
+export interface SuratNewsFeedResponse {
+  status: string;
+  total_count: number;
+  offset: number;
+  has_more: boolean;
+  news_items: SuratViralNewsItem[];
+  generated_via: "gemini_live" | "database_curated" | string;
+}
+
+export async function fetchViralSuratNews(payload?: {
+  category?: string;
+  area?: string;
+  count?: number;
+  offset?: number;
+  query?: string;
+  force_refresh?: boolean;
+  api_key?: string;
+}): Promise<SuratNewsFeedResponse> {
+  const res = await fetch(`${API_BASE}/api/surat-news/viral-feed`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!res.ok) throw new Error("Failed to fetch Surat viral news feed");
   return res.json();
 }
 

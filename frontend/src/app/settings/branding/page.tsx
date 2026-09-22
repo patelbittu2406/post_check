@@ -97,7 +97,7 @@ export default function BrandingSettingsPage() {
           <div className="p-5 rounded-2xl bg-bg-elevated/50 border border-border space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src="/logo.svg" alt="Prarambh Watermark" className="w-8 h-8 object-contain" />
+                <img src="/logo.png" alt="Prarambh Watermark" className="w-8 h-8 object-contain" />
                 <div>
                   <h3 className="text-xs font-bold text-text-primary">
                     Prarambh Circular Watermark

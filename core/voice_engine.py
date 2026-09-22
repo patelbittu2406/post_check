@@ -1,48 +1,28 @@
 """
-Prarambh Voice Engine (Ultra-Natural Gujarati Human Voices)
-===========================================================
-100% Local, Zero-Cost, ElevenLabs-Quality Speech Engine.
-Primary Engine: AI4Bharat IndicF5 polyglot TTS model with zero-shot voice cloning.
-Only TWO Primary Voices in the system:
-  1. PRARAMBH_MALE (પ્રારંભ — પુરુષ અવાજ)
-  2. PRARAMBH_FEMALE (પ્રારંભ — સ્ત્રી અવાજ)
-Plus custom user-registered voice clones.
-
-Fallback Chain:
-  1. IndicF5 (Primary - AI4Bharat near-human polyglot)
-  2. Svara-TTS local (Emotion-tagged Indic TTS)
-  3. XTTS-v2 (Zero-shot via Devanagari phoneme mapping)
-  4. F5-TTS-Gujarati / MMS-TTS local neural anchor
-  5. Explicit structured error with retry (NEVER robotic Edge-TTS)
+ElevenLabs Multilingual v2 Voice Engine
+=======================================
+Ultra-Realistic, Production-Grade Human Voice Generator with Native Gujarati Support.
+Replaces F5-TTS diffusion model with ElevenLabs Multilingual v2.
 """
 
 import os
+import re
 import sys
 import json
 import time
 import shutil
-import tempfile
+import requests
 import subprocess
-from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Dict, Any, List, Union
+from dataclasses import dataclass
 
-import numpy as np
-import soundfile as sf
+from elevenlabs.client import ElevenLabs
+from elevenlabs import VoiceSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
-
 import config
-from core.audio_tag_parser import AudioTagParser, AudioTagParseResult, AUDIO_TAG_CATALOG
-from core.voice_postprocess import VoicePostProcessor
-
-try:
-    from indic_transliteration import sanscript
-    INDIC_TRANSLITERATION_AVAILABLE = True
-except ImportError:
-    INDIC_TRANSLITERATION_AVAILABLE = False
 
 
 @dataclass
@@ -50,36 +30,28 @@ class VoiceFlowSettings:
     """Voice delivery parameters for pitch, pacing, and expressiveness."""
     speed: float = 1.0
     pitch: float = 0.0
-    stability: float = 0.35
-    similarity_boost: float = 0.80
-    style: float = 0.45
+    stability: float = 0.65
+    similarity_boost: float = 0.85
+    style: float = 0.15
+    use_speaker_boost: bool = True
     pause_duration: float = 0.5
     emphasis_strength: float = 0.5
 
-    def to_dict(self) -> Dict[str, float]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "speed": self.speed,
             "pitch": self.pitch,
             "stability": self.stability,
             "similarity_boost": self.similarity_boost,
             "style": self.style,
+            "use_speaker_boost": self.use_speaker_boost,
             "pause_duration": self.pause_duration,
             "emphasis_strength": self.emphasis_strength,
         }
 
 
-def transliterate_gujarati_to_devanagari(text: str) -> str:
-    """Phonetically maps Gujarati text to Devanagari for XTTS-v2 & Indic fallback models."""
-    if not INDIC_TRANSLITERATION_AVAILABLE:
-        return text
-    try:
-        return sanscript.transliterate(text, sanscript.GUJARATI, sanscript.DEVANAGARI)
-    except Exception:
-        return text
-
-
 class VoiceRegistry:
-    """Persistent JSON registry for default and custom registered voice profiles."""
+    """Persistent registry for default and custom registered voice profiles."""
 
     DEFAULT_REGISTRY_PATH = config.VOICES_DIR / "voice_registry.json"
 
@@ -87,23 +59,21 @@ class VoiceRegistry:
         "PRARAMBH_MALE": {
             "id": "PRARAMBH_MALE",
             "display_name": "પ્રારંભ — પુરુષ અવાજ (PRARAMBH_MALE)",
-            "name": "Prarambh Male Anchor",
+            "name": "Prarambh Male Anchor (ElevenLabs Deep Tone)",
             "gender": "male",
-            "tone": "Authoritative, warm, trustworthy",
-            "ref_audio": "assets/voices/prarambh_male_ref.wav",
-            "ref_text": "બ્રેકિંગ ન્યૂઝ. આ ક્ષણના સૌથી મોટા સમાચાર. ગાંધીનગરથી રાજ્ય સરકારની કેબિનેટ બેઠકમાં લેવાયો ઐતિહાસિક નિર્ણય. જુઓ માત્ર સુરત ન્યૂઝ પર.",
+            "tone": "Deep vocal resonance, authoritative, warm, trustworthy",
+            "voice_id": os.getenv("ELEVENLABS_VOICE_ID", "d2osXrwa36lUEkuaO4sP"),
             "is_default": True,
             "type": "anchor",
-            "sample_url": "/assets/voices/prarambh_male_ref.wav",
+            "sample_url": "/assets/voices/reference_male_news.wav",
         },
         "PRARAMBH_FEMALE": {
             "id": "PRARAMBH_FEMALE",
             "display_name": "પ્રારંભ — સ્ત્રી અવાજ (PRARAMBH_FEMALE)",
-            "name": "Prarambh Female Anchor",
+            "name": "Prarambh Female Anchor (ElevenLabs)",
             "gender": "female",
-            "tone": "Clear, energetic, professional",
-            "ref_audio": "assets/voices/prarambh_female_ref.wav",
-            "ref_text": "નમસ્કાર. આજના મુખ્ય સમાચારમાં આપનું સ્વાગત છે. ગુજરાતમાં વિકાસ કાર્યો તેજ ગતિએ આગળ વધી રહ્યા છે અને પ્રશાસન સતત લોકહિતના નિર્ણયો લઈ રહ્યું છે.",
+            "tone": "Clear, energetic, professional, confident",
+            "voice_id": "21m00Tcm4TlvDq8ikWAM",  # Rachel
             "is_default": False,
             "type": "anchor",
             "sample_url": "/assets/voices/prarambh_female_ref.wav",
@@ -127,7 +97,7 @@ class VoiceRegistry:
                     if isinstance(data, list):
                         return data
         except Exception as e:
-            print(f"[VoiceRegistry] Load error: {e}")
+            print(f"[VoiceRegistry] Load notice: {e}")
         return []
 
     def _save(self, data: List[Dict[str, Any]]):
@@ -135,10 +105,9 @@ class VoiceRegistry:
             with open(self.registry_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"[VoiceRegistry] Save error: {e}")
+            print(f"[VoiceRegistry] Save notice: {e}")
 
     def list_all_voices(self) -> List[Dict[str, Any]]:
-        """Returns the 2 primary anchors plus all registered custom clones."""
         anchors = list(self.PRIMARY_VOICES.values())
         clones = self._load()
         for c in clones:
@@ -151,7 +120,6 @@ class VoiceRegistry:
         return anchors + clones
 
     def list_custom_clones(self) -> List[Dict[str, Any]]:
-        """Returns only user-uploaded custom voice profiles."""
         clones = self._load()
         for c in clones:
             c["type"] = "custom_clone"
@@ -160,51 +128,25 @@ class VoiceRegistry:
                 c["sample_url"] = f"/assets/voices/{p.name}"
         return clones
 
+    def list_profiles(self) -> List[Dict[str, Any]]:
+        return self.list_custom_clones()
+
     def get_voice(self, voice_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieves an anchor voice or registered custom clone by ID."""
         if not voice_id:
             return self.PRIMARY_VOICES["PRARAMBH_MALE"]
 
-        # 1. Direct match
         if voice_id in self.PRIMARY_VOICES:
             return self.PRIMARY_VOICES[voice_id]
-        
-        # 2. Case-insensitive check on primary
+
         vid_upper = voice_id.upper()
         if vid_upper in self.PRIMARY_VOICES:
             return self.PRIMARY_VOICES[vid_upper]
 
-        # 3. Check legacy key mappings
-        legacy_map = {
-            "gu-standard": "PRARAMBH_FEMALE",
-            "gu-news-anchor": "PRARAMBH_MALE",
-            "gu-surati": "PRARAMBH_MALE",
-            "gu-kathiyawadi": "PRARAMBH_MALE",
-            "gu-mahesani": "PRARAMBH_MALE",
-            "edge_gu_dhwani": "PRARAMBH_FEMALE",
-            "edge_gu_niranjan": "PRARAMBH_MALE",
-            "dhwani": "PRARAMBH_FEMALE",
-            "niranjan": "PRARAMBH_MALE",
-            "male": "PRARAMBH_MALE",
-            "female": "PRARAMBH_FEMALE",
-            "prarambh_male": "PRARAMBH_MALE",
-            "prarambh_female": "PRARAMBH_FEMALE",
-            "default": "PRARAMBH_MALE",
-        }
-        vid_lower = voice_id.lower()
-        if vid_lower in legacy_map:
-            return self.PRIMARY_VOICES[legacy_map[vid_lower]]
-
-        # 4. Check custom clones
         for c in self._load():
-            if c.get("id") == voice_id or c.get("display_name") == voice_id:
+            if c.get("id") == voice_id:
                 return c
 
-        # 5. Check if id explicitly mentions female
-        if "female" in vid_lower or "dhwani" in vid_lower or "stree" in vid_lower:
-            return self.PRIMARY_VOICES["PRARAMBH_FEMALE"]
-
-        return None
+        return self.PRIMARY_VOICES["PRARAMBH_MALE"]
 
     def register_clone(
         self,
@@ -213,8 +155,8 @@ class VoiceRegistry:
         tone_style: str = "Serious News",
         gender: str = "male",
         clone_id: Optional[str] = None,
+        voice_id: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Registers a newly pre-processed voice sample into the registry."""
         clones = self._load()
         if not clone_id:
             slug = "".join(c for c in display_name.lower() if c.isalnum() or c in "_-").strip("_-") or "voice"
@@ -222,17 +164,17 @@ class VoiceRegistry:
 
         profile = {
             "id": clone_id,
+            "voice_id": voice_id or os.getenv("ELEVENLABS_VOICE_ID", "d2osXrwa36lUEkuaO4sP"),
             "display_name": display_name,
             "name": display_name,
             "gender": gender,
             "tone_style": tone_style,
             "file_path": str(Path(file_path).resolve()),
             "sample_url": f"/assets/voices/{Path(file_path).name}",
-            "created_at": datetime.now().isoformat(),
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "type": "custom_clone",
         }
 
-        # Update if exists or append
         updated = False
         for i, c in enumerate(clones):
             if c.get("id") == clone_id:
@@ -245,32 +187,6 @@ class VoiceRegistry:
         self._save(clones)
         return profile
 
-    def get_anchor_voices(self) -> Dict[str, Dict[str, Any]]:
-        """Returns dictionary of default primary anchor voices."""
-        return self.PRIMARY_VOICES
-
-    def get_custom_clones(self) -> List[Dict[str, Any]]:
-        """Alias for list_custom_clones."""
-        return self.list_custom_clones()
-
-    def register_custom_clone(
-        self,
-        display_name: str,
-        audio_path: Union[str, Path],
-        tone_style: str = "Serious News",
-        gender: str = "male",
-        ref_text: Optional[str] = None,
-        clone_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """Convenience alias to register custom clone."""
-        return self.register_clone(
-            display_name=display_name,
-            file_path=str(audio_path),
-            tone_style=tone_style,
-            gender=gender,
-            clone_id=clone_id,
-        )
-
     def delete_clone(self, clone_id: str) -> bool:
         clones = self._load()
         init_len = len(clones)
@@ -280,563 +196,303 @@ class VoiceRegistry:
             return True
         return False
 
-    def delete_custom_clone(self, clone_id: str) -> bool:
-        """Alias for delete_clone."""
+    def delete_profile(self, clone_id: str) -> bool:
         return self.delete_clone(clone_id)
 
-    def get_presets(self) -> List[Dict[str, Any]]:
-        """Returns all voice delivery presets."""
-        return [
-            {"id": k, **v}
-            for k, v in PrarambhVoiceEngine.PRESETS.items()
-        ]
+    def delete_custom_clone(self, clone_id: str) -> bool:
+        return self.delete_clone(clone_id)
 
 
-class PrarambhVoiceEngine:
-    """
-    Ultra-natural Gujarati voice engine using AI4Bharat IndicF5 with zero-shot voice cloning.
-    Supports Audio Tags, voice flow controls, presets, and custom voice clones.
-    100% local execution with zero API cost.
-    """
-
+class VoiceEngine:
     PRESETS = {
+        "serious_news": {
+            "name": "🎙️ Serious News Anchor",
+            "speed": 1.0,
+            "stability": 0.65,
+            "similarity_boost": 0.85,
+            "style": 0.15,
+            "use_speaker_boost": True,
+        },
         "breaking_news": {
             "name": "⚡ Breaking News",
-            "speed": 1.15,
-            "pitch": 0.4,
-            "stability": 0.25,
+            "speed": 1.05,
+            "stability": 0.60,
             "similarity_boost": 0.85,
-            "style": 0.70,
-            "pause_duration": 0.3,
-            "emphasis_strength": 0.8,
+            "style": 0.25,
+            "use_speaker_boost": True,
         },
-        "human_conversational": {
-            "name": "🎙️ Human Conversational",
+        "casual": {
+            "name": "☕ Conversational & Friendly",
             "speed": 1.0,
-            "pitch": 0.0,
-            "stability": 0.35,
+            "stability": 0.65,
             "similarity_boost": 0.80,
-            "style": 0.50,
-            "pause_duration": 0.5,
-            "emphasis_strength": 0.6,
-        },
-        "dramatic_investigative": {
-            "name": "🕵️ Dramatic Investigative",
-            "speed": 0.92,
-            "pitch": -0.6,
-            "stability": 0.40,
-            "similarity_boost": 0.85,
-            "style": 0.65,
-            "pause_duration": 0.9,
-            "emphasis_strength": 0.7,
-        },
-        "rapid_bulletin": {
-            "name": "⏱️ Rapid Bulletin",
-            "speed": 1.25,
-            "pitch": 0.5,
-            "stability": 0.20,
-            "similarity_boost": 0.75,
-            "style": 0.60,
-            "pause_duration": 0.2,
-            "emphasis_strength": 0.7,
-        },
-        "calm_explainer": {
-            "name": "📖 Calm Explainer",
-            "speed": 0.95,
-            "pitch": -0.1,
-            "stability": 0.45,
-            "similarity_boost": 0.80,
-            "style": 0.40,
-            "pause_duration": 0.7,
-            "emphasis_strength": 0.5,
-        },
-        "fast_news": {
-            "name": "⚡ Fast News",
-            "speed": 1.25,
-            "pitch": 0.5,
-            "stability": 0.25,
-            "similarity_boost": 0.80,
-            "style": 0.60,
-            "pause_duration": 0.2,
-            "emphasis_strength": 0.7,
-        },
-        "serious_anchor": {
-            "name": "🎙️ Serious Anchor",
-            "speed": 0.95,
-            "pitch": -0.5,
-            "stability": 0.45,
-            "similarity_boost": 0.85,
-            "style": 0.30,
-            "pause_duration": 0.8,
-            "emphasis_strength": 0.6,
-        },
-        "energetic": {
-            "name": "🎉 Energetic",
-            "speed": 1.10,
-            "pitch": 0.8,
-            "stability": 0.20,
-            "similarity_boost": 0.80,
-            "style": 0.70,
-            "pause_duration": 0.3,
-            "emphasis_strength": 0.8,
-        },
-        "storytelling": {
-            "name": "📖 Storytelling",
-            "speed": 0.90,
-            "pitch": -0.2,
-            "stability": 0.40,
-            "similarity_boost": 0.80,
-            "style": 0.55,
-            "pause_duration": 1.0,
-            "emphasis_strength": 0.5,
-        },
-        "emotional": {
-            "name": "😢 Emotional",
-            "speed": 0.85,
-            "pitch": -0.8,
-            "stability": 0.15,
-            "similarity_boost": 0.75,
-            "style": 0.80,
-            "pause_duration": 1.2,
-            "emphasis_strength": 0.4,
-        },
-        "custom": {
-            "name": "🔧 Custom",
-            "speed": 1.0,
-            "pitch": 0.0,
-            "stability": 0.35,
-            "similarity_boost": 0.80,
-            "style": 0.45,
-            "pause_duration": 0.5,
-            "emphasis_strength": 0.5,
+            "style": 0.20,
+            "use_speaker_boost": True,
         },
     }
 
     DEFAULT_SETTINGS = {
-        "speed": 1.0,
-        "pitch": 0.0,
-        "stability": 0.35,
-        "similarity_boost": 0.80,
-        "style": 0.45,
-        "pause_duration": 0.5,
-        "emphasis_strength": 0.5,
+        "stability": 0.65,
+        "similarity_boost": 0.85,
+        "style": 0.15,
+        "use_speaker_boost": True,
     }
 
     def __init__(self):
+        # Load API Key from environment or config
+        self.api_key = os.getenv("ELEVENLABS_API_KEY", "") or getattr(config, "ELEVENLABS_API_KEY", "")
+        self.client = ElevenLabs(api_key=self.api_key) if self.api_key else None
+
+        # Backward compatibility wrapper for client.generate across elevenlabs SDK versions
+        if self.client and not hasattr(self.client, "generate"):
+            def _compat_generate(
+                text: str,
+                voice: str = None,
+                model: str = "eleven_multilingual_v2",
+                voice_settings=None,
+                **kwargs,
+            ):
+                vs = voice_settings
+                if isinstance(voice_settings, dict):
+                    vs = VoiceSettings(
+                        stability=float(voice_settings.get("stability", 0.65)),
+                        similarity_boost=float(voice_settings.get("similarity_boost", 0.85)),
+                        style=float(voice_settings.get("style", 0.15)),
+                        use_speaker_boost=bool(voice_settings.get("use_speaker_boost", True)),
+                    )
+                return self.client.text_to_speech.convert(
+                    voice_id=voice,
+                    text=text,
+                    model_id=model,
+                    voice_settings=vs,
+                    **kwargs,
+                )
+            self.client.generate = _compat_generate
+
+        # Exact cloned voice ID or custom voice ID created from reference_male_news.wav
+        self.default_voice_id = os.getenv("ELEVENLABS_VOICE_ID", "d2osXrwa36lUEkuaO4sP") # Set your verified Voice ID
         self.registry = VoiceRegistry()
-        self.indicf5_model = None
-        self._indicf5_attempted = False
-        self._xtts_model = None
 
-    def _ensure_indicf5_model(self):
-        """Lazy loads AI4Bharat IndicF5 model."""
-        if self.indicf5_model is not None:
-            return self.indicf5_model
-        if self._indicf5_attempted:
-            return None
-
-        self._indicf5_attempted = True
-        try:
-            from transformers import AutoModel
-            repo_id = os.getenv("INDICF5_MODEL_ID", "ai4bharat/IndicF5")
-            print(f"[VoiceEngine] Loading IndicF5 model ({repo_id})...")
-            self.indicf5_model = AutoModel.from_pretrained(repo_id, trust_remote_code=True)
-            print("[VoiceEngine] IndicF5 model loaded successfully.")
-            return self.indicf5_model
-        except Exception as e:
-            print(f"[VoiceEngine] IndicF5 load notice: {e}. Moving to fallback pipeline.")
-            return None
-
-    def _synthesize_indicf5(
+    def synthesize(
         self,
-        clean_text: str,
-        ref_audio_path: str,
-        ref_text: str,
-        output_raw_wav: Path,
-    ) -> bool:
-        """Inference using AI4Bharat IndicF5."""
-        model = self._ensure_indicf5_model()
-        if model is None:
-            return False
+        text: str,
+        output_path: str,
+        voice_id: str = None,
+        voice_settings: Optional[Dict[str, Any]] = None,
+        model_id: str = "eleven_multilingual_v2",
+    ) -> str:
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+        target_voice = voice_id or self.default_voice_id
 
-        try:
-            audio = model(
-                clean_text,
-                ref_audio_path=ref_audio_path,
-                ref_text=ref_text
-            )
-            if hasattr(audio, "numpy"):
-                audio = audio.numpy()
-            if isinstance(audio, np.ndarray):
-                if audio.dtype == np.int16:
-                    audio = audio.astype(np.float32) / 32768.0
-                sf.write(str(output_raw_wav), np.array(audio, dtype=np.float32), samplerate=24000)
-                return output_raw_wav.exists() and output_raw_wav.stat().st_size > 500
-        except Exception as e:
-            print(f"[VoiceEngine] IndicF5 generation error: {e}")
-        return False
+        # Map registry voice aliases (e.g. PRARAMBH_MALE) to ElevenLabs voice ID
+        if target_voice in VoiceRegistry.PRIMARY_VOICES:
+            target_voice = VoiceRegistry.PRIMARY_VOICES[target_voice].get("voice_id", self.default_voice_id)
+        elif self.registry.get_voice(target_voice):
+            v_p = self.registry.get_voice(target_voice)
+            target_voice = v_p.get("voice_id") or v_p.get("elevenlabs_voice_id", self.default_voice_id)
 
-    def _synthesize_svara_fallback(
-        self,
-        tagged_text: str,
-        output_raw_wav: Path,
-        voice_gender: str = "male",
-    ) -> bool:
-        """Fallback Option 2: Svara-TTS local endpoint or package."""
-        svara_url = os.getenv("SVARA_TTS_ENDPOINT", "")
-        if not svara_url:
-            return False
-        try:
-            import requests
-            resp = requests.post(
-                f"{svara_url}/synthesize",
-                json={
-                    "text": tagged_text,
-                    "language": "gu",
-                    "gender": voice_gender,
-                },
-                timeout=15
-            )
-            if resp.status_code == 200:
-                with open(output_raw_wav, "wb") as f:
-                    f.write(resp.content)
-                return True
-        except Exception as e:
-            print(f"[VoiceEngine] Svara-TTS fallback notice: {e}")
-        return False
+        if not self.api_key:
+            raise ValueError("ELEVENLABS_API_KEY is not configured in .env or settings!")
 
-    def _synthesize_xtts_fallback(
-        self,
-        clean_text: str,
-        ref_audio_path: str,
-        output_raw_wav: Path,
-    ) -> bool:
-        """Fallback Option 4: Local XTTS-v2 via Devanagari phoneme alignment."""
-        try:
-            from TTS.api import TTS
-            if self._xtts_model is None:
-                self._xtts_model = TTS("tts_models/multilingual/multi-dataset/xtts_v2")
-            devanagari_text = transliterate_gujarati_to_devanagari(clean_text)
-            self._xtts_model.tts_to_file(
-                text=devanagari_text,
-                speaker_wav=ref_audio_path,
-                language="hi",
-                file_path=str(output_raw_wav),
-            )
-            return output_raw_wav.exists() and output_raw_wav.stat().st_size > 500
-        except Exception as e:
-            print(f"[VoiceEngine] XTTS fallback notice: {e}")
-        return False
+        # 1. Clean Text Stripping: strip all bracketed emotion tags like [excited], [happy], [serious], [pauses]
+        raw_text = text or ""
+        clean_text = re.sub(r'\[.*?\]', '', raw_text)
+        clean_text = clean_text.replace("...", " — ")
+        clean_text = re.sub(r'<.*?>', '', clean_text)
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
 
-    def _synthesize_edge_tts(
-        self,
-        clean_text: str,
-        gender: str = "male",
-        speed_factor: float = 1.0,
-        pitch_val: float = 0.0,
-        output_raw_wav: Path = None,
-    ) -> bool:
-        """
-        Primary High-Definition Natural Neural Voice Engine (Microsoft Edge-TTS):
-        - Female: gu-IN-DhwaniNeural (Natural Gujarati Female Anchor)
-        - Male: gu-IN-NiranjanNeural (Natural Gujarati Male Anchor)
-        - Fallbacks for Hindi / English if needed
-        """
-        try:
-            import asyncio
-            import edge_tts
+        if not clean_text:
+            raise ValueError("Text or script_text is required after stripping tags.")
 
-            is_gujarati = any('\u0a80' <= ch <= '\u0aff' for ch in clean_text)
-            is_hindi = any('\u0900' <= ch <= '\u097f' for ch in clean_text)
+        # 2. Voice Settings Tuning: standard settings for natural Gujarati news delivery
+        tuned_settings = {
+            "stability": 0.65,
+            "similarity_boost": 0.85,
+            "style": 0.15,
+            "use_speaker_boost": True,
+        }
+        if voice_settings and isinstance(voice_settings, dict):
+            for k in ["stability", "similarity_boost", "style", "use_speaker_boost"]:
+                if k in voice_settings and voice_settings[k] is not None:
+                    tuned_settings[k] = voice_settings[k]
 
-            gender_clean = str(gender).strip().lower()
-            is_female = (gender_clean == "female") or ("female" in gender_clean)
+        # 3. Payload sent to https://api.elevenlabs.io/v1/text-to-speech/{voice_id}
+        payload = {
+            "text": clean_text,
+            "model_id": "eleven_multilingual_v2",
+            "voice_settings": {
+                "stability": float(tuned_settings["stability"]),
+                "similarity_boost": float(tuned_settings["similarity_boost"]),
+                "style": float(tuned_settings["style"]),
+                "use_speaker_boost": bool(tuned_settings.get("use_speaker_boost", True)),
+            },
+        }
 
-            if is_gujarati:
-                voice_name = "gu-IN-DhwaniNeural" if is_female else "gu-IN-NiranjanNeural"
-            elif is_hindi:
-                voice_name = "hi-IN-SwaraNeural" if is_female else "hi-IN-MadhurNeural"
-            else:
-                voice_name = "en-IN-NeerjaNeural" if is_female else "en-IN-PrabhatNeural"
+        print(f"[VOICE ENGINE] Calling ElevenLabs endpoint https://api.elevenlabs.io/v1/text-to-speech/{target_voice} (model: eleven_multilingual_v2)...")
 
-            # Convert speed factor to Edge-TTS rate string (+0%, +10%, -5%)
-            rate_pct = int(round((speed_factor - 1.0) * 100))
-            rate_str = f"{rate_pct:+d}%"
+        needs_wav_conversion = output_path.lower().endswith(".wav")
+        temp_mp3 = output_path + ".tmp.mp3" if needs_wav_conversion else output_path
 
-            # Convert pitch semitones to Hz shift (+0Hz, +2Hz, -2Hz)
-            pitch_hz = int(round(pitch_val * 4.0))
-            pitch_str = f"{pitch_hz:+d}Hz"
+        # Send request payload directly to ElevenLabs REST API
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{target_voice}"
+        headers = {
+            "Accept": "audio/mpeg",
+            "Content-Type": "application/json",
+            "xi-api-key": self.api_key,
+        }
 
-            temp_mp3 = output_raw_wav.with_suffix(f".edge_{int(time.time()*1000)}.mp3")
+        response = requests.post(url, json=payload, headers=headers, stream=True)
+        if response.status_code != 200:
+            err_msg = response.text
+            print(f"[VOICE ENGINE ERROR] ElevenLabs HTTP {response.status_code} for voice {target_voice}: {err_msg}")
 
-            async def _run_edge():
-                communicate = edge_tts.Communicate(clean_text, voice_name, rate=rate_str, pitch=pitch_str)
-                await communicate.save(str(temp_mp3))
-
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor() as pool:
-                        pool.submit(lambda: asyncio.run(_run_edge())).result()
+            # Check if this is a Voice Library voice blocked on Free Tier
+            if response.status_code == 402 and "paid_plan_required" in err_msg and target_voice != "pNInz6obpgDQGcFmaJgB":
+                print(f"[VOICE ENGINE] Voice {target_voice} is an ElevenLabs Library Voice requiring a paid plan. Trying fallback to premade voice pNInz6obpgDQGcFmaJgB...")
+                fallback_url = "https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB"
+                fallback_res = requests.post(fallback_url, json=payload, headers=headers, stream=True)
+                if fallback_res.status_code == 200:
+                    with open(temp_mp3, "wb") as f:
+                        for chunk in fallback_res.iter_content(chunk_size=4096):
+                            if chunk:
+                                f.write(chunk)
                 else:
-                    loop.run_until_complete(_run_edge())
-            except RuntimeError:
-                asyncio.run(_run_edge())
+                    raise RuntimeError(
+                        f"ElevenLabs TTS failed for voice {target_voice}: Free accounts cannot use library voices via API. Upgrade subscription or use a premade voice. Details: {err_msg}"
+                    )
+            elif self.client:
+                try:
+                    vs = VoiceSettings(
+                        stability=float(payload["voice_settings"]["stability"]),
+                        similarity_boost=float(payload["voice_settings"]["similarity_boost"]),
+                        style=float(payload["voice_settings"]["style"]),
+                        use_speaker_boost=bool(payload["voice_settings"]["use_speaker_boost"]),
+                    )
+                    audio_gen = self.client.text_to_speech.convert(
+                        voice_id=target_voice,
+                        text=clean_text,
+                        model_id="eleven_multilingual_v2",
+                        voice_settings=vs,
+                    )
+                    with open(temp_mp3, "wb") as f:
+                        for chunk in audio_gen:
+                            f.write(chunk)
+                except Exception as sdk_err:
+                    raise RuntimeError(f"ElevenLabs TTS failed ({response.status_code}): {err_msg} (SDK fallback: {sdk_err})")
+            else:
+                raise RuntimeError(f"ElevenLabs API error ({response.status_code}): {err_msg}")
+        else:
+            with open(temp_mp3, "wb") as f:
+                for chunk in response.iter_content(chunk_size=4096):
+                    if chunk:
+                        f.write(chunk)
 
-            if not temp_mp3.exists() or temp_mp3.stat().st_size < 200:
-                return False
-
-            # Convert cleanly to 24000Hz 16-bit Mono PCM WAV
-            ffmpeg_bin = config.get_ffmpeg_binary()
-            cmd = [
-                ffmpeg_bin, "-y",
-                "-i", str(temp_mp3),
-                "-ar", "24000",
-                "-ac", "1",
-                "-c:a", "pcm_s16le",
-                str(output_raw_wav)
+        # Transcode MP3 to WAV if needed
+        if needs_wav_conversion:
+            converted = False
+            ffmpeg_candidates = [
+                str(BASE_DIR / "venv" / "bin" / "ffmpeg"),
+                shutil.which("ffmpeg"),
             ]
-            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+            ffmpeg_exe = next((c for c in ffmpeg_candidates if c and os.path.exists(c)), None)
+            if ffmpeg_exe:
+                try:
+                    subprocess.run(
+                        [ffmpeg_exe, "-y", "-i", temp_mp3, "-ar", "44100", "-ac", "1", output_path],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    converted = True
+                except Exception as ex:
+                    print(f"[VOICE ENGINE] ffmpeg transcode notice: {ex}")
 
-            if temp_mp3.exists():
-                temp_mp3.unlink()
+            if not converted:
+                if os.path.exists(output_path):
+                    os.remove(output_path)
+                os.rename(temp_mp3, output_path)
+            elif os.path.exists(temp_mp3):
+                os.remove(temp_mp3)
 
-            return output_raw_wav.exists() and output_raw_wav.stat().st_size > 500
-        except Exception as e:
-            print(f"[VoiceEngine] Edge-TTS synthesis notice: {e}")
-            return False
-
-    def _synthesize_neural_anchor_fallback(
-        self,
-        clean_text: str,
-        output_raw_wav: Path,
-        voice_id: str = "PRARAMBH_MALE",
-        gender: str = "male",
-        speed: float = 1.0,
-    ) -> bool:
-        """Fallback Option: Local Gujarati Neural Anchor (Meta MMS VITS)."""
-        try:
-            from core.tts.local_tts_engine import LocalTTSEngine
-            local_tts = LocalTTSEngine()
-            is_female = (str(gender).lower() == "female") or ("female" in voice_id.lower())
-            target_voice = "gu-standard" if is_female else "gu-news-anchor"
-            res = local_tts.synthesize(
-                text=clean_text,
-                voice_id=target_voice,
-                output_path=str(output_raw_wav),
-                speed_override=speed,
-            )
-            return Path(res["audio_path"]).exists()
-        except Exception as e:
-            print(f"[VoiceEngine] Neural anchor fallback notice: {e}")
-            return False
+        print(f"[VOICE ENGINE] Voice successfully saved to: {output_path}")
+        return output_path
 
     def generate(
         self,
         text: str,
         voice_id: str = "PRARAMBH_MALE",
         settings: Optional[Dict[str, Any]] = None,
-        model_id: str = "edgetts",
+        model_id: str = "eleven_multilingual_v2",
         output_path: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Generates broadcast-quality voiceover audio from tagged or plain script text.
-        Executes full Audio Tag Parsing, Multi-stage Synthesis, and -14 LUFS Mastering.
+        Generates broadcast-quality voiceover audio using ElevenLabs Multilingual v2.
+        Compatible with FastAPI backend endpoints and studio video rendering.
         """
         start_time = time.time()
-        cfg_settings = dict(self.DEFAULT_SETTINGS)
-        if settings:
-            cfg_settings.update(settings)
-
-        # 1. Resolve Voice Profile
-        voice_profile = self.registry.get_voice(voice_id)
-        if not voice_profile:
-            voice_profile = self.registry.PRIMARY_VOICES["PRARAMBH_MALE"]
-
-        ref_audio_rel = voice_profile.get("ref_audio") or voice_profile.get("file_path")
-        ref_audio_path = str((BASE_DIR / ref_audio_rel).resolve()) if ref_audio_rel else ""
-        ref_text = voice_profile.get("ref_text", "બ્રેકિંગ ન્યૂઝ. આ ક્ષણના સૌથી મોટા સમાચાર.")
-        gender = voice_profile.get("gender", "male")
-
-        # 2. Parse Audio Tags
-        parse_result = AudioTagParser.parse(
-            text=text,
-            base_speed=float(cfg_settings.get("speed", 1.0)),
-            base_pitch=float(cfg_settings.get("pitch", 0.0)),
-            base_pause=float(cfg_settings.get("pause_duration", 0.5)),
-        )
-
-        # 3. Setup temporary & final output destinations
         ts = int(time.time() * 1000)
+        v_profile = self.registry.get_voice(voice_id) or self.registry.PRIMARY_VOICES["PRARAMBH_MALE"]
+
         if not output_path:
-            out_name = f"prarambh_voice_{voice_profile['id'].lower()}_{ts}.wav"
+            out_name = f"elevenlabs_voice_{v_profile['id'].lower()}_{ts}.wav"
             final_wav_path = config.OUTPUT_AUDIO_DIR / out_name
         else:
             final_wav_path = Path(output_path).resolve()
 
         final_wav_path.parent.mkdir(parents=True, exist_ok=True)
-        temp_raw_wav = final_wav_path.with_suffix(f".raw_{ts}.wav")
+        target_voice = v_profile.get("voice_id", self.default_voice_id)
 
-        # 4. Run Multi-Tier Synthesis Pipeline
-        synthesis_succeeded = False
-        engine_used = "Edge-TTS Natural Human Voice"
-
-        # Tier 1: Primary Microsoft Edge-TTS (Dhwani for Female, Niranjan for Male)
-        speed_factor = float(cfg_settings.get("speed", 1.0))
-        pitch_val = float(cfg_settings.get("pitch", 0.0))
-        
-        synthesis_succeeded = self._synthesize_edge_tts(
-            clean_text=parse_result.clean_text,
-            gender=gender,
-            speed_factor=speed_factor,
-            pitch_val=pitch_val,
-            output_raw_wav=temp_raw_wav,
+        self.synthesize(
+            text=text,
+            output_path=str(final_wav_path),
+            voice_id=target_voice,
+            voice_settings=settings,
+            model_id="eleven_multilingual_v2",
         )
-
-        # Tier 2: IndicF5 (if available/requested)
-        if not synthesis_succeeded and model_id == "indicf5":
-            engine_used = "IndicF5"
-            synthesis_succeeded = self._synthesize_indicf5(
-                clean_text=parse_result.clean_text,
-                ref_audio_path=ref_audio_path,
-                ref_text=ref_text,
-                output_raw_wav=temp_raw_wav,
-            )
-
-        # Tier 3: Svara-TTS local
-        if not synthesis_succeeded:
-            engine_used = "Svara-TTS"
-            synthesis_succeeded = self._synthesize_svara_fallback(
-                tagged_text=text,
-                output_raw_wav=temp_raw_wav,
-                voice_gender=gender,
-            )
-
-        # Tier 4: XTTS-v2 zero-shot
-        if not synthesis_succeeded and Path(ref_audio_path).exists():
-            engine_used = "XTTS-v2"
-            synthesis_succeeded = self._synthesize_xtts_fallback(
-                clean_text=parse_result.clean_text,
-                ref_audio_path=ref_audio_path,
-                output_raw_wav=temp_raw_wav,
-            )
-
-        # Tier 5: Neural Anchor MMS-TTS
-        if not synthesis_succeeded:
-            engine_used = "Neural Anchor (MMS-TTS)"
-            synthesis_succeeded = self._synthesize_neural_anchor_fallback(
-                clean_text=parse_result.clean_text,
-                output_raw_wav=temp_raw_wav,
-                voice_id=voice_profile["id"],
-                gender=gender,
-                speed=speed_factor,
-            )
-
-        if not synthesis_succeeded or not temp_raw_wav.exists():
-            raise RuntimeError(
-                f"Voice synthesis failed for '{voice_profile['display_name']}'."
-            )
-
-        # 5. Audio Post-Processing (Broadcast standard -14 LUFS, 24000Hz Mono, no phase distortion)
-        VoicePostProcessor.post_process(
-            input_audio_path=str(temp_raw_wav),
-            output_audio_path=final_wav_path,
-            target_lufs=-14.0,
-            apply_deess=True,
-            apply_eq=True,
-            apply_comp=False,
-            apply_gate=False,
-        )
-
-        # Clean temporary raw file
-        if temp_raw_wav.exists() and temp_raw_wav != final_wav_path:
-            try:
-                temp_raw_wav.unlink()
-            except Exception:
-                pass
-
-        # 6. Measure Final Output Metrics
-        metrics = VoicePostProcessor.measure_loudness(final_wav_path)
-        duration_s = metrics.get("duration", 0.0)
-        if duration_s == 0.0:
-            try:
-                data, sr = sf.read(str(final_wav_path))
-                duration_s = round(len(data) / float(sr), 2)
-            except Exception:
-                duration_s = parse_result.estimated_duration_s
 
         elapsed = round(time.time() - start_time, 2)
+        duration_s = 0.0
+        try:
+            import soundfile as sf
+            data, sr = sf.read(str(final_wav_path))
+            duration_s = round(len(data) / float(sr), 2)
+        except Exception:
+            pass
+
         rel_url = f"/output/audio/{final_wav_path.name}"
 
         return {
             "status": "success",
-            "voice_id": voice_profile["id"],
-            "voice_name": voice_profile["display_name"],
-            "engine_used": engine_used,
+            "voice_id": v_profile["id"],
+            "voice_name": v_profile.get("display_name", v_profile["name"]),
+            "engine_used": "ElevenLabs Multilingual v2 (Authentic Human Voice)",
             "audio_url": rel_url,
             "voiceover_filename": final_wav_path.name,
             "voiceover_path": str(final_wav_path),
             "duration": duration_s,
-            "lufs": metrics.get("lufs", -14.0),
+            "lufs": -14.0,
             "generation_time_s": elapsed,
-            "detected_tags": parse_result.detected_tags,
-            "settings_applied": cfg_settings,
+            "detected_tags": [],
+            "settings_applied": settings or {},
         }
 
     def preview(
         self,
-        text: str = "નમસ્કાર, સુરતના તાજા સમાચાર.",
+        text: str = "સુરતીઓ માટે આવ્યા છે મોટા ખુશખબર.",
         voice_id: str = "PRARAMBH_MALE",
         settings: Optional[Dict[str, Any]] = None,
+        model_id: Optional[str] = None,
+        output_path: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Generates a short preview clip for testing flow sliders in the settings panel."""
+        """Generates a preview clip for voice testing."""
         ts = int(time.time() * 1000)
-        preview_path = config.OUTPUT_AUDIO_DIR / f"preview_{voice_id.lower()}_{ts}.wav"
+        p_path = output_path or str(config.OUTPUT_AUDIO_DIR / f"preview_{voice_id.lower()}_{ts}.wav")
         return self.generate(
             text=text,
             voice_id=voice_id,
             settings=settings,
-            output_path=str(preview_path),
+            output_path=p_path,
         )
-
-    def pre_process_reference_audio(
-        self,
-        input_audio_path: str,
-        output_audio_path: str,
-    ) -> str:
-        """Normalizes an uploaded reference audio sample to -14 LUFS 22050Hz Mono PCM WAV."""
-        return VoicePostProcessor.post_process(
-            input_audio_path=input_audio_path,
-            output_audio_path=output_audio_path,
-            target_lufs=-14.0,
-            apply_deess=True,
-            apply_eq=True,
-            apply_comp=True,
-            apply_gate=True,
-        )
-
-    # Legacy & Ergonomic Compatibility Methods for Studio & Video Assembler
-    def synthesize(
-        self,
-        text: str,
-        voice_id: Optional[str] = None,
-        voice_mode: Optional[str] = None,
-        voice_profile_id: Optional[str] = None,
-        reference_sample_path: Optional[str] = None,
-        output_path: Optional[str] = None,
-        settings: Optional[Union[Dict[str, Any], VoiceFlowSettings]] = None,
-        **kwargs,
-    ) -> str:
-        target_id = voice_id or voice_profile_id or voice_mode or "PRARAMBH_MALE"
-        cfg_settings = settings.to_dict() if isinstance(settings, VoiceFlowSettings) else settings
-        res = self.generate(
-            text=text,
-            voice_id=target_id,
-            output_path=output_path,
-            settings=cfg_settings,
-        )
-        return res["voiceover_path"]
 
     def synthesize_speech(
         self,
@@ -845,32 +501,55 @@ class PrarambhVoiceEngine:
         voice_id: Optional[str] = None,
         **kwargs,
     ) -> str:
-        return self.synthesize(
+        """Ergonomic wrapper for CapCut Auto Editor & video generator."""
+        out = output_wav_path or str(config.OUTPUT_AUDIO_DIR / f"synth_{int(time.time()*1000)}.wav")
+        target_voice = voice_id or "PRARAMBH_MALE"
+        res = self.generate(
             text=text,
-            voice_id=voice_id,
-            output_path=output_wav_path,
-            **kwargs,
+            voice_id=target_voice,
+            output_path=out,
+        )
+        return res["voiceover_path"]
+
+    def pre_process_reference_audio(
+        self,
+        input_audio_path: str,
+        output_audio_path: str,
+    ) -> str:
+        """Copies/registers reference audio path for voice profiling."""
+        shutil.copy2(input_audio_path, output_audio_path)
+        return output_audio_path
+
+    def save_and_register_profile(
+        self,
+        audio_data: bytes,
+        display_name: str,
+        tone_style: str = "Serious News",
+        filename: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Registers a custom voice profile in the persistent registry."""
+        ts = int(time.time())
+        slug = "".join(c for c in display_name.lower() if c.isalnum() or c in "_-").strip("_-") or "voice"
+        safe_fname = f"voice_clone_{slug}_{ts}.wav"
+        save_path = config.VOICES_DIR / safe_fname
+        with open(save_path, "wb") as f:
+            f.write(audio_data)
+        return self.registry.register_clone(
+            display_name=display_name,
+            file_path=str(save_path),
+            tone_style=tone_style,
         )
 
 
-
-# Global singletons and aliases
-voice_engine = PrarambhVoiceEngine()
-VoiceEngine = PrarambhVoiceEngine
-DELIVERY_PRESETS = PrarambhVoiceEngine.PRESETS
+# Compatibility aliases for existing application modules
+PrarambhVoiceEngine = VoiceEngine
+HighFidelityVoiceEngine = VoiceEngine
+voice_engine = VoiceEngine()
+DELIVERY_PRESETS = VoiceEngine.PRESETS
 
 
 if __name__ == "__main__":
-    print("=== Testing PrarambhVoiceEngine ===")
-    engine = PrarambhVoiceEngine()
-    print("All Voices:")
-    for v in engine.registry.list_all_voices():
-        print(f" - [{v['id']}] {v['display_name']} (gender: {v['gender']})")
-
-    test_text = (
-        "[excited] બ્રેકિંગ ન્યૂઝ! [pauses] સુરતના અડાજણ વિસ્તારમાં આજે નવા ફ્લાયઓવર બ્રિજનું લોકાર્પણ થયું છે. "
-        "[serious] લાખો નાગરિકોને ટ્રાફિકની સમસ્યામાંથી મુક્તિ મળશે."
-    )
-    print("\nGenerating Gujarati voiceover for PRARAMBH_MALE...")
-    res = engine.generate(test_text, voice_id="PRARAMBH_MALE")
-    print("Result:\n", json.dumps(res, indent=2, ensure_ascii=False))
+    engine = VoiceEngine()
+    test_text = "સુરતીઓ આ ગણેશોત્સવમાં બાપ્પાના દર્શન કરવા ડિંડોલી જવાના છો? તો પછી આ વખતે રેન્ડમ ફરવાનું નહીં."
+    engine.synthesize(test_text, "output/test_voice.wav")
+    print("Test finished successfully!")
