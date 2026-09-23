@@ -70,14 +70,14 @@ export default function BrandingSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold font-outfit text-text-primary flex items-center gap-2">
-              <Palette className="w-5 h-5 text-brand-pink" />
+            <h2 className="text-lg font-bold font-inter text-slate-900 flex items-center gap-2">
+              <Palette className="w-5 h-5 text-indigo-600" />
               Brand Identity & Visual Styler
             </h2>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Customize Prarambh watermark overlays, dual-stripe headline colors, and ASS subtitle typography.
             </p>
           </div>
@@ -85,7 +85,7 @@ export default function BrandingSettingsPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white brand-gradient-bg glow-pink hover:opacity-95 active:scale-95 transition-all duration-150 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-xs disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? "Saving..." : "Save Branding Styles"}</span>
@@ -94,15 +94,15 @@ export default function BrandingSettingsPage() {
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* 1. Watermark Section */}
-          <div className="p-5 rounded-2xl bg-bg-elevated/50 border border-border space-y-4">
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <img src="/logo.png" alt="Prarambh Watermark" className="w-8 h-8 object-contain" />
                 <div>
-                  <h3 className="text-xs font-bold text-text-primary">
+                  <h3 className="text-xs font-bold text-slate-900">
                     Prarambh Circular Watermark
                   </h3>
-                  <p className="text-[11px] text-text-muted">
+                  <p className="text-[11px] text-slate-500">
                     Render official circular branding on final 1080x1920 video output.
                   </p>
                 </div>
@@ -112,11 +112,11 @@ export default function BrandingSettingsPage() {
                 type="button"
                 onClick={() => setWatermarkEnabled(!watermarkEnabled)}
                 className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${
-                  watermarkEnabled ? "bg-brand-pink" : "bg-bg-surface border border-border"
+                  watermarkEnabled ? "bg-indigo-600" : "bg-slate-200 border border-slate-300"
                 }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                  className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform shadow-xs ${
                     watermarkEnabled ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
@@ -124,9 +124,9 @@ export default function BrandingSettingsPage() {
             </div>
 
             {watermarkEnabled && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-text-primary">Watermark Placement</label>
+                  <label className="text-xs font-semibold text-slate-700">Watermark Placement</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: "top-left", label: "Top Left" },
@@ -140,8 +140,8 @@ export default function BrandingSettingsPage() {
                         onClick={() => setWatermarkPosition(pos.id)}
                         className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                           watermarkPosition === pos.id
-                            ? "brand-gradient-bg text-white shadow-sm glow-pink"
-                            : "bg-bg-surface border border-border text-text-muted hover:text-text-primary"
+                            ? "bg-indigo-600 text-white shadow-2xs"
+                            : "bg-white border border-[#E5E7EB] text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                         }`}
                       >
                         {pos.label}
@@ -152,8 +152,8 @@ export default function BrandingSettingsPage() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-text-primary">Opacity</label>
-                    <span className="text-xs font-mono text-brand-pink">{Math.round(watermarkOpacity * 100)}%</span>
+                    <label className="text-xs font-semibold text-slate-700">Opacity</label>
+                    <span className="text-xs font-mono text-indigo-600 font-bold">{Math.round(watermarkOpacity * 100)}%</span>
                   </div>
                   <input
                     type="range"
@@ -162,7 +162,7 @@ export default function BrandingSettingsPage() {
                     step="0.05"
                     value={watermarkOpacity}
                     onChange={(e) => setWatermarkOpacity(parseFloat(e.target.value))}
-                    className="w-full accent-brand-pink"
+                    className="w-full accent-indigo-600"
                   />
                 </div>
               </div>
@@ -170,22 +170,22 @@ export default function BrandingSettingsPage() {
           </div>
 
           {/* 2. Dual-Stripe Headline Badges Section */}
-          <div className="p-5 rounded-2xl bg-bg-elevated/50 border border-border space-y-4">
-            <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-brand-yellow" />
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Layers className="w-4 h-4 text-amber-500" />
               Dual-Stripe Headline Pill Styler
             </h3>
 
             {/* Live Interactive Pill Preview */}
-            <div className="flex flex-col items-center gap-2.5 p-6 rounded-xl bg-bg-base/80 border border-border shadow-inner">
+            <div className="flex flex-col items-center gap-2.5 p-6 rounded-xl bg-slate-100/90 border border-slate-200 shadow-inner">
               <div 
-                className="px-6 py-2.5 rounded-2xl font-extrabold font-gujarati text-base shadow-lg transition-colors text-center"
+                className="px-6 py-2.5 rounded-2xl font-extrabold font-gujarati text-base shadow-sm transition-colors text-center"
                 style={{ backgroundColor: line1Bg, color: line1Text }}
               >
                 સુરત ઉત્સવ | તૈયારીઓ પૂર્ણ હતી...
               </div>
               <div 
-                className="px-6 py-2.5 rounded-2xl font-extrabold font-gujarati text-base shadow-lg transition-colors text-center"
+                className="px-6 py-2.5 rounded-2xl font-extrabold font-gujarati text-base shadow-sm transition-colors text-center"
                 style={{ backgroundColor: line2Bg, color: line2Text }}
               >
                 પણ બાપ્પાની મરજી કંઈક અલગ હતી! 🚩
@@ -194,10 +194,10 @@ export default function BrandingSettingsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Line 1 Colors */}
-              <div className="p-3.5 rounded-xl bg-bg-surface border border-border space-y-3">
-                <span className="text-xs font-bold text-text-primary">Line 1 Pill (Top Strip)</span>
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200/70 space-y-3">
+                <span className="text-xs font-bold text-slate-900">Line 1 Pill (Top Strip)</span>
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-xs text-text-muted">Background:</label>
+                  <label className="text-xs text-slate-500">Background:</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -205,11 +205,11 @@ export default function BrandingSettingsPage() {
                       onChange={(e) => setLine1Bg(e.target.value)}
                       className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                     />
-                    <span className="text-xs font-mono text-text-primary">{line1Bg}</span>
+                    <span className="text-xs font-mono text-slate-800">{line1Bg}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-xs text-text-muted">Text Color:</label>
+                  <label className="text-xs text-slate-500">Text Color:</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -217,16 +217,16 @@ export default function BrandingSettingsPage() {
                       onChange={(e) => setLine1Text(e.target.value)}
                       className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                     />
-                    <span className="text-xs font-mono text-text-primary">{line1Text}</span>
+                    <span className="text-xs font-mono text-slate-800">{line1Text}</span>
                   </div>
                 </div>
               </div>
 
               {/* Line 2 Colors */}
-              <div className="p-3.5 rounded-xl bg-bg-surface border border-border space-y-3">
-                <span className="text-xs font-bold text-text-primary">Line 2 Pill (Bottom Strip)</span>
+              <div className="p-3.5 rounded-xl bg-white border border-slate-200/70 space-y-3">
+                <span className="text-xs font-bold text-slate-900">Line 2 Pill (Bottom Strip)</span>
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-xs text-text-muted">Background:</label>
+                  <label className="text-xs text-slate-500">Background:</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -234,11 +234,11 @@ export default function BrandingSettingsPage() {
                       onChange={(e) => setLine2Bg(e.target.value)}
                       className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                     />
-                    <span className="text-xs font-mono text-text-primary">{line2Bg}</span>
+                    <span className="text-xs font-mono text-slate-800">{line2Bg}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-xs text-text-muted">Text Color:</label>
+                  <label className="text-xs text-slate-500">Text Color:</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -246,7 +246,7 @@ export default function BrandingSettingsPage() {
                       onChange={(e) => setLine2Text(e.target.value)}
                       className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
                     />
-                    <span className="text-xs font-mono text-text-primary">{line2Text}</span>
+                    <span className="text-xs font-mono text-slate-800">{line2Text}</span>
                   </div>
                 </div>
               </div>
@@ -254,17 +254,17 @@ export default function BrandingSettingsPage() {
           </div>
 
           {/* 3. Subtitle Styler Section */}
-          <div className="p-5 rounded-2xl bg-bg-elevated/50 border border-border space-y-4">
-            <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-brand-cyan" />
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-indigo-600" />
               Dynamic ASS Word-Level Subtitles
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-text-primary">Font Size</label>
-                  <span className="text-xs font-mono text-brand-cyan">{subFontSize}px</span>
+                  <label className="text-xs font-semibold text-slate-700">Font Size</label>
+                  <span className="text-xs font-mono text-indigo-600 font-bold">{subFontSize}px</span>
                 </div>
                 <input
                   type="range"
@@ -273,12 +273,12 @@ export default function BrandingSettingsPage() {
                   step="2"
                   value={subFontSize}
                   onChange={(e) => setSubFontSize(parseInt(e.target.value))}
-                  className="w-full accent-brand-cyan"
+                  className="w-full accent-indigo-600"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-primary">Text Color</label>
+                <label className="text-xs font-semibold text-slate-700">Text Color</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -286,12 +286,12 @@ export default function BrandingSettingsPage() {
                     onChange={(e) => setSubColor(e.target.value)}
                     className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
                   />
-                  <span className="text-xs font-mono text-text-primary">{subColor}</span>
+                  <span className="text-xs font-mono text-slate-800">{subColor}</span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-primary">Outline / Shadow Color</label>
+                <label className="text-xs font-semibold text-slate-700">Outline / Shadow Color</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -299,7 +299,7 @@ export default function BrandingSettingsPage() {
                     onChange={(e) => setSubOutline(e.target.value)}
                     className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
                   />
-                  <span className="text-xs font-mono text-text-primary">{subOutline}</span>
+                  <span className="text-xs font-mono text-slate-800">{subOutline}</span>
                 </div>
               </div>
             </div>

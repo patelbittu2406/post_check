@@ -53,23 +53,23 @@ export default function LibraryPage() {
   });
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto bg-bg-base p-6 md:p-8 space-y-6">
+    <div className="h-full overflow-y-auto bg-[#F8F9FA] p-6 md:p-8 space-y-6">
       <div className="max-w-6xl w-full mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold font-outfit tracking-tight text-text-primary flex items-center gap-2">
-              <Layers className="w-6 h-6 text-brand-cyan" />
-              Reels & Drafts Library
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <Layers className="w-6 h-6 text-indigo-600" />
+              Reels & Media Library
             </h1>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Browse all rendered 1080x1920 Gujarati reels, download MP4 media, and publish to Instagram.
             </p>
           </div>
 
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white brand-gradient-bg glow-pink hover:opacity-95 active:scale-95 transition-all shrink-0"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Create New Reel</span>
@@ -77,30 +77,37 @@ export default function LibraryPage() {
         </div>
 
         {/* Search and Filters Bar */}
-        <div className="p-3.5 rounded-2xl bg-bg-surface border border-border flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
           <div className="relative w-full sm:w-80">
-            <Search className="w-3.5 h-3.5 absolute left-3.5 top-3 text-text-muted" />
+            <Search className="w-3.5 h-3.5 absolute left-3.5 top-3 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by headline or keyword..."
-              className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none"
+              className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white outline-none transition-colors placeholder:text-slate-400"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-            {["all", "N01", "C01", "T01", "F01", "B01"].map((cat) => (
+          <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
+            {[
+              { id: "all", label: "All Categories" },
+              { id: "N01", label: "News & City" },
+              { id: "C01", label: "Crime" },
+              { id: "T01", label: "Traffic" },
+              { id: "F01", label: "Festival" },
+              { id: "B01", label: "Business" },
+            ].map((cat) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  selectedCategory === cat
-                    ? "brand-gradient-bg text-white shadow-sm glow-pink"
-                    : "bg-bg-elevated border border-border text-text-muted hover:text-text-primary"
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                  selectedCategory === cat.id
+                    ? "bg-slate-900 text-white shadow-xs font-semibold ring-2 ring-slate-900/10"
+                    : "bg-white text-slate-600 border border-[#E5E7EB] hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
-                {cat === "all" ? "All Categories" : cat}
+                {cat.label}
               </button>
             ))}
           </div>
@@ -112,35 +119,35 @@ export default function LibraryPage() {
             {filteredReels.map((reel) => (
               <div
                 key={reel.id}
-                className="bg-bg-surface border border-border rounded-2xl overflow-hidden shadow-sm hover:border-brand-pink/40 hover:shadow-md transition-all group flex flex-col justify-between"
+                className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-xs hover:border-indigo-200 hover:shadow-md transition-all group flex flex-col justify-between"
               >
-                <div className="relative aspect-[9/12] bg-slate-950 flex items-center justify-center overflow-hidden">
+                <div className="relative aspect-[9/12] bg-slate-900 flex items-center justify-center overflow-hidden">
                   <video
                     src={reel.video_url}
                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                   {/* Play preview overlay button */}
                   <button
                     onClick={() => setSelectedReel(reel)}
-                    className="absolute w-12 h-12 rounded-full brand-gradient-bg text-white flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all glow-pink"
+                    className="absolute w-12 h-12 rounded-full bg-white/95 text-indigo-600 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all"
                   >
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                   </button>
 
                   {/* Badges on video */}
                   <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 uppercase font-outfit">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/20 uppercase font-sans">
                       {reel.category_code}
                     </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-yellow/20 text-brand-yellow border border-brand-yellow/30 font-mono">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
                       {Math.round(reel.duration || 30)}s
                     </span>
                   </div>
 
                   {reel.published && (
-                    <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent-success/30 backdrop-blur-md text-accent-success border border-accent-success/40 flex items-center gap-1">
+                    <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 backdrop-blur-md text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" /> Published
                     </span>
                   )}
@@ -149,26 +156,26 @@ export default function LibraryPage() {
                 {/* Card Content */}
                 <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                   <div className="space-y-1">
-                    <h3 className="text-xs font-bold font-gujarati text-text-primary line-clamp-1">
+                    <h3 className="text-xs font-bold font-gujarati text-slate-900 line-clamp-1">
                       {reel.headline_line1}
                     </h3>
-                    <p className="text-[11px] font-semibold font-gujarati text-brand-pink line-clamp-1">
+                    <p className="text-[11px] font-semibold font-gujarati text-indigo-600 line-clamp-1">
                       {reel.headline_line2}
                     </p>
-                    <p className="text-[10px] text-text-muted flex items-center gap-1 mt-1 font-mono">
+                    <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-1 font-mono">
                       <Clock className="w-3 h-3" />
                       {reel.created_at ? new Date(reel.created_at).toLocaleDateString() : "Recent"} • {reel.file_size_mb || "4.2"} MB
                     </p>
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-2 border-t border-border flex items-center justify-between gap-2">
+                  <div className="pt-2 border-t border-[#E5E7EB] flex items-center justify-between gap-2">
                     <a
                       href={reel.video_url}
                       download={reel.filename}
-                      className="w-full py-1.5 px-2 rounded-xl bg-bg-elevated border border-border text-[11px] font-bold text-text-primary hover:border-brand-pink flex items-center justify-center gap-1.5 transition-colors"
+                      className="w-full py-1.5 px-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-[11px] font-semibold text-slate-700 hover:border-indigo-300 hover:text-indigo-600 flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      <Download className="w-3.5 h-3.5 text-brand-pink" />
+                      <Download className="w-3.5 h-3.5 text-indigo-600" />
                       <span>Download MP4</span>
                     </a>
                   </div>
@@ -178,21 +185,21 @@ export default function LibraryPage() {
           </div>
         ) : (
           /* Empty State */
-          <div className="p-12 rounded-2xl bg-bg-surface border border-border text-center space-y-4 shadow-sm">
-            <div className="w-16 h-16 rounded-full bg-brand-pink/15 text-brand-pink flex items-center justify-center mx-auto ring-4 ring-brand-pink/10">
+          <div className="p-12 rounded-2xl bg-white border border-[#E5E7EB] text-center space-y-4 shadow-xs">
+            <div className="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto ring-4 ring-indigo-50/50">
               <Film className="w-8 h-8" />
             </div>
             <div className="space-y-1 max-w-sm mx-auto">
-              <h3 className="text-base font-bold font-outfit text-text-primary">
+              <h3 className="text-base font-bold text-slate-900">
                 No Reels Rendered Yet
               </h3>
-              <p className="text-xs text-text-muted">
-                Create your first AI-generated Gujarati news reel using the 3-column studio canvas.
+              <p className="text-xs text-slate-500">
+                Create your first AI-generated Gujarati news reel using the Canva-style Studio canvas.
               </p>
             </div>
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white brand-gradient-bg glow-pink hover:opacity-95"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Launch Reel Studio</span>
@@ -205,28 +212,28 @@ export default function LibraryPage() {
       {selectedReel && (
         <div 
           onClick={() => setSelectedReel(null)}
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-bg-surface border border-border rounded-3xl p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-3xl p-5 shadow-2xl space-y-4"
           >
             <div className="flex items-center justify-between">
               <div className="truncate">
-                <h3 className="text-sm font-bold font-gujarati text-text-primary truncate">
+                <h3 className="text-sm font-bold font-gujarati text-slate-900 truncate">
                   {selectedReel.headline_line1}
                 </h3>
-                <p className="text-xs font-gujarati text-brand-pink truncate">{selectedReel.headline_line2}</p>
+                <p className="text-xs font-gujarati text-indigo-600 truncate">{selectedReel.headline_line2}</p>
               </div>
               <button
                 onClick={() => setSelectedReel(null)}
-                className="w-8 h-8 rounded-full bg-bg-elevated border border-border flex items-center justify-center text-text-muted hover:text-text-primary"
+                className="w-8 h-8 rounded-full bg-slate-100 border border-[#E5E7EB] flex items-center justify-center text-slate-500 hover:text-slate-900"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="aspect-[9/16] bg-black rounded-2xl overflow-hidden border border-border shadow-inner">
+            <div className="aspect-[9/16] bg-slate-950 rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-inner">
               <video
                 controls
                 autoPlay
@@ -239,9 +246,9 @@ export default function LibraryPage() {
               <a
                 href={selectedReel.video_url}
                 download={selectedReel.filename}
-                className="w-full py-2 rounded-xl bg-bg-elevated border border-border text-xs font-bold text-text-primary hover:border-brand-pink flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-sm flex items-center justify-center gap-2 transition-colors"
               >
-                <Download className="w-4 h-4 text-brand-pink" />
+                <Download className="w-4 h-4" />
                 <span>Download MP4</span>
               </a>
             </div>

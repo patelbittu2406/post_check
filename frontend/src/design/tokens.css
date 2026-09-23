@@ -4,35 +4,39 @@
 
 @layer base {
   :root {
-    --bg-base: #FAFAFB;
+    --bg-base: #F8F9FA;
     --bg-surface: #FFFFFF;
-    --bg-elevated: #F4F4F6;
-    --border: #E5E5EA;
-    --text-primary: #0A0A0F;
-    --text-muted: #6B6B75;
+    --bg-elevated: #F3F4F6;
+    --border: #E5E7EB;
+    --text-primary: #1F2937;
+    --text-muted: #6B7280;
     
-    --brand-pink: #E91E63;
-    --brand-pink-dark: #C2185B;
-    --brand-pink-light: #F06292;
-    --brand-yellow: #FDD835;
-    --brand-yellow-bold: #FFEB3B;
-    --brand-cyan: #00BCD4;
-    --brand-cyan-dark: #0097A7;
+    --brand-purple: #6366F1;
+    --brand-purple-dark: #4F46E5;
+    --brand-purple-light: #EEF2FF;
+    --brand-blue: #2563EB;
+    --brand-pink: #6366F1;
+    --brand-pink-dark: #4F46E5;
+    --brand-pink-light: #EEF2FF;
+    --brand-yellow: #F59E0B;
+    --brand-yellow-bold: #D97706;
+    --brand-cyan: #2563EB;
+    --brand-cyan-dark: #1D4ED8;
     
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
-    --radius-xl: 24px;
+    --radius-xl: 20px;
     --radius-full: 9999px;
   }
 
   .dark {
-    --bg-base: #0A0A0F;
-    --bg-surface: #12121A;
-    --bg-elevated: #1A1A24;
-    --border: #26262F;
-    --text-primary: #F5F5F7;
-    --text-muted: #8A8A94;
+    --bg-base: #F8F9FA;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #F3F4F6;
+    --border: #E5E7EB;
+    --text-primary: #1F2937;
+    --text-muted: #6B7280;
   }
 
   body {
@@ -42,7 +46,7 @@
   }
 }
 
-/* Custom Scrollbars */
+/* Custom Clean Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -51,48 +55,40 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(138, 138, 148, 0.25);
+  background: #D1D5DB;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(233, 30, 99, 0.5);
+  background: #9CA3AF;
 }
 
-/* Glassmorphic utilities */
+/* Canva Clean Panel */
 .glass-panel {
-  background: rgba(18, 18, 26, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.light .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 .brand-gradient-bg {
-  background: linear-gradient(135deg, #E91E63 0%, #FDD835 50%, #00BCD4 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
 }
 
 .brand-gradient-text {
-  background: linear-gradient(135deg, #E91E63 0%, #FDD835 50%, #00BCD4 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .brand-gradient-pink {
-  background: linear-gradient(135deg, #E91E63 0%, #F06292 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #7C3AED 100%);
 }
 
-/* Glow effects */
-.glow-pink {
-  box-shadow: 0 0 30px -5px rgba(233, 30, 99, 0.4);
-}
-.glow-cyan {
-  box-shadow: 0 0 30px -5px rgba(0, 188, 212, 0.4);
+/* Clean Soft Shadows replacing neon glows */
+.glow-pink, .glow-cyan {
+  box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.12), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* Pulsing Shimmer */
+/* Subtle Shimmer */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -102,7 +98,7 @@
   }
 }
 .animate-shimmer {
-  background: linear-gradient(90deg, rgba(233,30,99,0.1) 0%, rgba(253,216,53,0.2) 50%, rgba(0,188,212,0.1) 100%);
+  background: linear-gradient(90deg, rgba(243, 244, 246, 0.6) 0%, rgba(229, 231, 235, 0.9) 50%, rgba(243, 244, 246, 0.6) 100%);
   background-size: 200% 100%;
-  animation: shimmer 2.5s infinite;
+  animation: shimmer 2s infinite;
 }

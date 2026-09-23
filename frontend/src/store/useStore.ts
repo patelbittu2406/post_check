@@ -157,7 +157,7 @@ const DEFAULT_DRAFT: ReelDraft = {
 
 
 export const useStore = create<AppState>((set, get) => ({
-  theme: "dark",
+  theme: "light",
   toggleTheme: () => {
     const next = get().theme === "dark" ? "light" : "dark";
     if (typeof document !== "undefined") {

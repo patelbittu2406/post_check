@@ -205,21 +205,30 @@ Return valid JSON adhering strictly to ReelContentOutput schema.
                 try:
                     from google import genai
                     client = genai.Client(api_key=key)
-                    model_to_use = config.GEMINI_MODEL or "gemini-3.6-flash"
-                    response = client.models.generate_content(
-                        model=model_to_use,
-                        contents=[system_prompt, user_prompt],
-                        config={
-                            "response_mime_type": "application/json",
-                            "response_schema": ReelContentOutput,
-                            "temperature": 0.2,
-                        }
-                    )
-                    data = json.loads(response.text)
-                    result = ReelContentOutput(**data)
-                    return self._finalize_output(result, category_code)
+                    primary_model = config.GEMINI_MODEL or "gemini-3.6-flash"
+                    candidate_models = [primary_model]
+                    for alt in ["gemini-3-flash-preview", "gemini-flash-latest"]:
+                        if alt not in candidate_models:
+                            candidate_models.append(alt)
+
+                    for model_to_use in candidate_models:
+                        try:
+                            response = client.models.generate_content(
+                                model=model_to_use,
+                                contents=[system_prompt, user_prompt],
+                                config={
+                                    "response_mime_type": "application/json",
+                                    "response_schema": ReelContentOutput,
+                                    "temperature": 0.2,
+                                }
+                            )
+                            data = json.loads(response.text)
+                            result = ReelContentOutput(**data)
+                            return self._finalize_output(result, category_code)
+                        except Exception as m_err:
+                            print(f"[LLMAdapter] Gemini ({model_to_use}) call failed: {m_err}")
                 except Exception as e:
-                    print(f"[LLMAdapter] Gemini call failed: {e}")
+                    print(f"[LLMAdapter] Gemini initialization failed: {e}")
 
         # 2. Try OpenAI (GPT-4o)
         elif provider == "OpenAI":
@@ -488,24 +497,33 @@ Insert the audio tags intelligently while keeping all original words 100% untouc
                 try:
                     from google import genai
                     client = genai.Client(api_key=key)
-                    model_to_use = config.GEMINI_MODEL or "gemini-3.6-flash"
-                    response = client.models.generate_content(
-                        model=model_to_use,
-                        contents=[system_prompt, user_prompt],
-                        config={
-                            "response_mime_type": "application/json",
-                            "response_schema": AutoTagScriptOutput,
-                            "temperature": 0.1,
-                        }
-                    )
-                    data = json.loads(response.text)
-                    tagged = data.get("tagged_script", "").strip()
-                    if tagged and self._verify_text_preserved(cleaned_input, tagged):
-                        return tagged
-                    else:
-                        print("[LLMAdapter] Gemini output did not preserve original text closely, using rule-based tags.")
+                    primary_model = config.GEMINI_MODEL or "gemini-3.6-flash"
+                    candidate_models = [primary_model]
+                    for alt in ["gemini-3-flash-preview", "gemini-flash-latest"]:
+                        if alt not in candidate_models:
+                            candidate_models.append(alt)
+
+                    for model_to_use in candidate_models:
+                        try:
+                            response = client.models.generate_content(
+                                model=model_to_use,
+                                contents=[system_prompt, user_prompt],
+                                config={
+                                    "response_mime_type": "application/json",
+                                    "response_schema": AutoTagScriptOutput,
+                                    "temperature": 0.1,
+                                }
+                            )
+                            data = json.loads(response.text)
+                            tagged = data.get("tagged_script", "").strip()
+                            if tagged and self._verify_text_preserved(cleaned_input, tagged):
+                                return tagged
+                            else:
+                                print(f"[LLMAdapter] Gemini ({model_to_use}) output did not preserve original text closely.")
+                        except Exception as m_err:
+                            print(f"[LLMAdapter] Gemini ({model_to_use}) auto_tag_script error: {m_err}")
                 except Exception as e:
-                    print(f"[LLMAdapter] Gemini auto_tag_script error: {e}")
+                    print(f"[LLMAdapter] Gemini client init error: {e}")
 
         # 2. Try OpenAI
         elif provider == "OpenAI":

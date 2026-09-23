@@ -139,14 +139,14 @@ export default function AIModelsSettingsPage() {
   return (
     <div className="space-y-6">
       {/* Header card */}
-      <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold font-outfit text-text-primary flex items-center gap-2">
-              <Bot className="w-5 h-5 text-brand-pink" />
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Bot className="w-5 h-5 text-indigo-600" />
               Multi-LLM Provider Engine
             </h2>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Configure and test credentials for Gemini, OpenAI, and Anthropic Claude.
             </p>
           </div>
@@ -154,7 +154,7 @@ export default function AIModelsSettingsPage() {
           <button
             onClick={handleSaveAll}
             disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white brand-gradient-bg glow-pink hover:opacity-95 active:scale-95 transition-all duration-150 shrink-0"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-xs shrink-0 disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? "Saving..." : "Save AI Credentials"}</span>
@@ -164,9 +164,9 @@ export default function AIModelsSettingsPage() {
         {/* Default Provider Selector & Fallback Toggle */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {/* Active Provider Radio */}
-          <div className="p-4 rounded-xl bg-bg-elevated/60 border border-border space-y-2">
-            <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-brand-yellow" />
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
               Active Primary AI Generation Provider
             </span>
             <div className="grid grid-cols-3 gap-2">
@@ -175,10 +175,10 @@ export default function AIModelsSettingsPage() {
                   key={prov}
                   type="button"
                   onClick={() => setAiProvider(prov)}
-                  className={`py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                  className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                     aiProvider === prov
-                      ? "brand-gradient-bg text-white shadow-sm glow-pink"
-                      : "bg-bg-surface border border-border text-text-muted hover:text-text-primary"
+                      ? "bg-indigo-600 text-white shadow-2xs"
+                      : "bg-white border border-[#E5E7EB] text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
                   {prov}
@@ -188,13 +188,13 @@ export default function AIModelsSettingsPage() {
           </div>
 
           {/* Offline Fallback Toggle */}
-          <div className="p-4 rounded-xl bg-bg-elevated/60 border border-border flex items-center justify-between gap-4">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-4">
             <div className="space-y-0.5">
-              <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-brand-cyan" />
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
                 Rule-Based Offline Fallback
               </span>
-              <p className="text-[11px] text-text-muted">
+              <p className="text-[11px] text-slate-500">
                 Synthesizes headline pills via offline news templates if API quotas exceed or fail.
               </p>
             </div>
@@ -202,11 +202,11 @@ export default function AIModelsSettingsPage() {
               type="button"
               onClick={() => setOfflineFallback(!offlineFallback)}
               className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${
-                offlineFallback ? "bg-brand-pink" : "bg-bg-surface border border-border"
+                offlineFallback ? "bg-indigo-600" : "bg-slate-200"
               }`}
             >
               <span
-                className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-xs transition-transform ${
                   offlineFallback ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -218,28 +218,28 @@ export default function AIModelsSettingsPage() {
       {/* 3 Provider Cards Side-by-Side */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* 1. Google Gemini Card */}
-        <div className={`bg-bg-surface border rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between transition-all ${
-          aiProvider === "Gemini" ? "border-brand-pink ring-1 ring-brand-pink/30" : "border-border"
+        <div className={`bg-white border rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between transition-all ${
+          aiProvider === "Gemini" ? "border-indigo-600 ring-2 ring-indigo-500/20" : "border-[#E5E7EB]"
         }`}>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400 text-xs">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center font-bold text-blue-600 text-xs">
                   G
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">Google Gemini</h3>
-                  <span className="text-[10px] text-text-muted">Official SDK v1.0+</span>
+                  <h3 className="text-sm font-bold text-slate-900">Google Gemini</h3>
+                  <span className="text-[10px] text-slate-500">Official SDK v1.0+</span>
                 </div>
               </div>
 
               {/* Status Badge */}
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
                 geminiStatus === "connected"
-                  ? "bg-accent-success/15 text-accent-success border border-accent-success/30"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
                   : geminiStatus === "error"
-                  ? "bg-accent-danger/15 text-accent-danger border border-accent-danger/30"
-                  : "bg-brand-yellow/15 text-brand-yellow border border-brand-yellow/30"
+                  ? "bg-rose-50 text-rose-700 border border-rose-200/60"
+                  : "bg-amber-50 text-amber-700 border border-amber-200/60"
               }`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-current" />
                 {geminiStatus === "connected" ? "Connected" : geminiStatus === "error" ? "Error" : "No Key"}
@@ -248,11 +248,11 @@ export default function AIModelsSettingsPage() {
 
             {/* Model Selector */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-text-muted">Model Engine</label>
+              <label className="text-[11px] font-semibold text-slate-600">Model Engine</label>
               <select
                 value={geminiModel}
                 onChange={(e) => setGeminiModel(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:border-indigo-500 focus:bg-white outline-none"
               >
                 <option value="gemini-3.6-flash">gemini-3.6-flash (Recommended)</option>
                 <option value="gemini-2.5-flash">gemini-2.5-flash</option>
@@ -262,9 +262,9 @@ export default function AIModelsSettingsPage() {
 
             {/* Masked API Key */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-text-muted flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-slate-600 flex items-center justify-between">
                 <span>Gemini API Key</span>
-                <span className="text-[10px] text-brand-pink font-mono">AQ.Ab...</span>
+                <span className="text-[10px] text-indigo-600 font-mono">AQ.Ab...</span>
               </label>
               <div className="relative">
                 <input
@@ -275,12 +275,12 @@ export default function AIModelsSettingsPage() {
                     setGeminiStatus(e.target.value ? "connected" : "nokey");
                   }}
                   placeholder="Paste Gemini API Key"
-                  className="w-full pl-3 pr-9 py-2 rounded-xl bg-bg-elevated border border-border text-xs font-mono text-text-primary focus:border-brand-pink outline-none"
+                  className="w-full pl-3 pr-9 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:border-indigo-500 focus:bg-white outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowGeminiKey(!showGeminiKey)}
-                  className="absolute right-2.5 top-2.5 text-text-muted hover:text-text-primary"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
                 >
                   {showGeminiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
@@ -293,12 +293,12 @@ export default function AIModelsSettingsPage() {
               type="button"
               onClick={() => handleTestConnection("Gemini")}
               disabled={testingGemini || !geminiKey}
-              className="w-full py-2 px-3 rounded-xl bg-bg-elevated border border-border text-xs font-semibold text-text-primary hover:border-brand-pink hover:text-brand-pink transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
+              className="w-full py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
             >
               {testingGemini ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Zap className="w-3.5 h-3.5 text-brand-yellow" />
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
               )}
               <span>{geminiLatency ? `Test (${geminiLatency}ms)` : "Test Connection"}</span>
             </button>
@@ -306,28 +306,28 @@ export default function AIModelsSettingsPage() {
         </div>
 
         {/* 2. OpenAI Card */}
-        <div className={`bg-bg-surface border rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between transition-all ${
-          aiProvider === "OpenAI" ? "border-brand-pink ring-1 ring-brand-pink/30" : "border-border"
+        <div className={`bg-white border rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between transition-all ${
+          aiProvider === "OpenAI" ? "border-indigo-600 ring-2 ring-indigo-500/20" : "border-[#E5E7EB]"
         }`}>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center font-bold text-emerald-400 text-xs">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center font-bold text-emerald-600 text-xs">
                   OA
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">OpenAI</h3>
-                  <span className="text-[10px] text-text-muted">GPT-4o Vision & Audio</span>
+                  <h3 className="text-sm font-bold text-slate-900">OpenAI</h3>
+                  <span className="text-[10px] text-slate-500">GPT-4o Vision & Audio</span>
                 </div>
               </div>
 
               {/* Status Badge */}
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
                 openaiStatus === "connected"
-                  ? "bg-accent-success/15 text-accent-success border border-accent-success/30"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
                   : openaiStatus === "error"
-                  ? "bg-accent-danger/15 text-accent-danger border border-accent-danger/30"
-                  : "bg-brand-yellow/15 text-brand-yellow border border-brand-yellow/30"
+                  ? "bg-rose-50 text-rose-700 border border-rose-200/60"
+                  : "bg-amber-50 text-amber-700 border border-amber-200/60"
               }`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-current" />
                 {openaiStatus === "connected" ? "Connected" : openaiStatus === "error" ? "Error" : "No Key"}
@@ -336,11 +336,11 @@ export default function AIModelsSettingsPage() {
 
             {/* Model Selector */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-text-muted">Model Engine</label>
+              <label className="text-[11px] font-semibold text-slate-600">Model Engine</label>
               <select
                 value={openaiModel}
                 onChange={(e) => setOpenaiModel(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:border-indigo-500 focus:bg-white outline-none"
               >
                 <option value="gpt-4o">gpt-4o (High Fidelity)</option>
                 <option value="gpt-4o-mini">gpt-4o-mini (Fast & Light)</option>
@@ -350,7 +350,7 @@ export default function AIModelsSettingsPage() {
 
             {/* Masked API Key */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-text-muted">OpenAI API Key</label>
+              <label className="text-[11px] font-semibold text-slate-600">OpenAI API Key</label>
               <div className="relative">
                 <input
                   type={showOpenaiKey ? "text" : "password"}
@@ -360,12 +360,12 @@ export default function AIModelsSettingsPage() {
                     setOpenaiStatus(e.target.value ? "connected" : "nokey");
                   }}
                   placeholder="sk-..."
-                  className="w-full pl-3 pr-9 py-2 rounded-xl bg-bg-elevated border border-border text-xs font-mono text-text-primary focus:border-brand-pink outline-none"
+                  className="w-full pl-3 pr-9 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:border-indigo-500 focus:bg-white outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowOpenaiKey(!showOpenaiKey)}
-                  className="absolute right-2.5 top-2.5 text-text-muted hover:text-text-primary"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
                 >
                   {showOpenaiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
@@ -378,12 +378,12 @@ export default function AIModelsSettingsPage() {
               type="button"
               onClick={() => handleTestConnection("OpenAI")}
               disabled={testingOpenai || !openaiKey}
-              className="w-full py-2 px-3 rounded-xl bg-bg-elevated border border-border text-xs font-semibold text-text-primary hover:border-brand-pink hover:text-brand-pink transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
+              className="w-full py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
             >
               {testingOpenai ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Zap className="w-3.5 h-3.5 text-brand-yellow" />
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
               )}
               <span>{openaiLatency ? `Test (${openaiLatency}ms)` : "Test Connection"}</span>
             </button>
@@ -391,28 +391,28 @@ export default function AIModelsSettingsPage() {
         </div>
 
         {/* 3. Anthropic Claude Card */}
-        <div className={`bg-bg-surface border rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between transition-all ${
-          aiProvider === "Claude" ? "border-brand-pink ring-1 ring-brand-pink/30" : "border-border"
+        <div className={`bg-white border rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between transition-all ${
+          aiProvider === "Claude" ? "border-indigo-600 ring-2 ring-indigo-500/20" : "border-[#E5E7EB]"
         }`}>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center font-bold text-amber-400 text-xs">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center font-bold text-amber-600 text-xs">
                   CL
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">Anthropic Claude</h3>
-                  <span className="text-[10px] text-text-muted">Claude 3.5 Sonnet / Haiku</span>
+                  <h3 className="text-sm font-bold text-slate-900">Anthropic Claude</h3>
+                  <span className="text-[10px] text-slate-500">Claude 3.5 Sonnet / Haiku</span>
                 </div>
               </div>
 
               {/* Status Badge */}
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
                 claudeStatus === "connected"
-                  ? "bg-accent-success/15 text-accent-success border border-accent-success/30"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200/60"
                   : claudeStatus === "error"
-                  ? "bg-accent-danger/15 text-accent-danger border border-accent-danger/30"
-                  : "bg-brand-yellow/15 text-brand-yellow border border-brand-yellow/30"
+                  ? "bg-rose-50 text-rose-700 border border-rose-200/60"
+                  : "bg-amber-50 text-amber-700 border border-amber-200/60"
               }`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-current" />
                 {claudeStatus === "connected" ? "Connected" : claudeStatus === "error" ? "Error" : "No Key"}
@@ -421,11 +421,11 @@ export default function AIModelsSettingsPage() {
 
             {/* Model Selector */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-text-muted">Model Engine</label>
+              <label className="text-[11px] font-semibold text-slate-600">Model Engine</label>
               <select
                 value={claudeModel}
                 onChange={(e) => setClaudeModel(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none"
+                className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:border-indigo-500 focus:bg-white outline-none"
               >
                 <option value="claude-3-5-sonnet">claude-3-5-sonnet (Superb Gujarati)</option>
                 <option value="claude-3-5-haiku">claude-3-5-haiku (Lightning Fast)</option>
@@ -434,7 +434,7 @@ export default function AIModelsSettingsPage() {
 
             {/* Masked API Key */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-text-muted">Anthropic API Key</label>
+              <label className="text-[11px] font-semibold text-slate-600">Anthropic API Key</label>
               <div className="relative">
                 <input
                   type={showClaudeKey ? "text" : "password"}
@@ -444,12 +444,12 @@ export default function AIModelsSettingsPage() {
                     setClaudeStatus(e.target.value ? "connected" : "nokey");
                   }}
                   placeholder="sk-ant-..."
-                  className="w-full pl-3 pr-9 py-2 rounded-xl bg-bg-elevated border border-border text-xs font-mono text-text-primary focus:border-brand-pink outline-none"
+                  className="w-full pl-3 pr-9 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:border-indigo-500 focus:bg-white outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowClaudeKey(!showClaudeKey)}
-                  className="absolute right-2.5 top-2.5 text-text-muted hover:text-text-primary"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
                 >
                   {showClaudeKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
@@ -462,12 +462,12 @@ export default function AIModelsSettingsPage() {
               type="button"
               onClick={() => handleTestConnection("Claude")}
               disabled={testingClaude || !claudeKey}
-              className="w-full py-2 px-3 rounded-xl bg-bg-elevated border border-border text-xs font-semibold text-text-primary hover:border-brand-pink hover:text-brand-pink transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
+              className="w-full py-2 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-40"
             >
               {testingClaude ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Zap className="w-3.5 h-3.5 text-brand-yellow" />
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
               )}
               <span>{claudeLatency ? `Test (${claudeLatency}ms)` : "Test Connection"}</span>
             </button>

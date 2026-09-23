@@ -1,172 +1,92 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   Film, 
   Lightbulb, 
+  FolderOpen, 
   BarChart3, 
-  Radio, 
   Settings, 
-  ChevronLeft, 
-  ChevronRight, 
-  Sparkles,
-  User
+  User,
+  Sparkles
 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 
 const navItems = [
-  { name: "Studio", path: "/dashboard", icon: Film, badge: "3-Step" },
-  { name: "News Ideas", path: "/ideas", icon: Lightbulb, badge: "Viral" },
-  { name: "Analytics", path: "/analytics", icon: BarChart3 },
-  { name: "Live Stream", path: "/live-stream", icon: Radio, badge: "24/7" },
+  { name: "Studio", path: "/dashboard", icon: Film },
+  { name: "Ideas", path: "/ideas", icon: Lightbulb },
+  { name: "Media", path: "/library", icon: FolderOpen },
+  { name: "Insights", path: "/analytics", icon: BarChart3 },
   { name: "Settings", path: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
   const { profile } = useStore();
 
   return (
-    <motion.aside
-      animate={{ width: collapsed ? 76 : 260 }}
-      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-      className="relative flex flex-col h-screen border-r border-border bg-bg-surface z-40 select-none shrink-0"
-    >
-      {/* Header / Logo */}
-      <div className="flex items-center justify-between p-4 border-b border-border h-16">
-        <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden group">
-          <div className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-md ring-2 ring-brand-pink/30 group-hover:scale-105 transition-transform duration-200">
-            {/* Logo display */}
-            <img 
-              src="/logo.png" 
-              alt="Prarambh Logo" 
-              className="w-10 h-10 object-contain drop-shadow"
-            />
-          </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.15 }}
-                className="flex flex-col whitespace-nowrap overflow-hidden"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-base tracking-tight font-outfit text-text-primary">
-                    પ્રારંભ
-                  </span>
-                  <span className="text-xs px-1.5 py-0.5 rounded-full font-bold bg-brand-pink/15 text-brand-pink border border-brand-pink/20">
-                    STUDIO
-                  </span>
-                </div>
-                <span className="text-[11px] text-text-muted font-medium truncate">
-                  Surat Reel Engine
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Link>
-      </div>
-
-      {/* Primary Navigation */}
-      <div className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname === item.path || (item.path === "/settings" && pathname.startsWith("/settings"));
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={`relative flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
-                isActive
-                  ? "text-white shadow-sm"
-                  : "text-text-muted hover:text-text-primary hover:bg-bg-elevated"
-              }`}
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="activeNavPill"
-                  className="absolute inset-0 rounded-xl brand-gradient-bg glow-pink -z-10"
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-              )}
-
-              <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "group-hover:text-brand-pink transition-colors"}`} />
-
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="truncate flex-1 font-outfit"
-                  >
-                    {item.name}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-
-              {!collapsed && item.badge && (
-                <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? "bg-white/20 text-white" : "bg-brand-pink/15 text-brand-pink"
-                }`}>
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Collapse Toggle Button */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3.5 top-20 w-7 h-7 rounded-full bg-bg-surface border border-border shadow-md flex items-center justify-center text-text-muted hover:text-text-primary hover:border-brand-pink transition-colors z-50"
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
-
-      {/* User / Workspace Footer */}
-      <div className="p-3 border-t border-border">
+    <aside className="w-[72px] h-screen bg-white border-r border-[#E5E7EB] flex flex-col items-center justify-between py-4 select-none shrink-0 z-40">
+      {/* Top: Canva-style Brand Emblem */}
+      <div className="flex flex-col items-center gap-4 w-full">
         <Link 
-          href="/settings/profile"
-          className="flex items-center gap-3 p-2 rounded-xl hover:bg-bg-elevated transition-colors overflow-hidden group"
+          href="/dashboard" 
+          className="w-10 h-10 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center p-1.5 hover:border-indigo-300 hover:shadow-xs transition-all group"
+          title="Prarambh Studio"
         >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-pink to-brand-cyan flex items-center justify-center text-white shrink-0 font-bold text-xs ring-2 ring-white/10 shadow-sm">
-            <User className="w-4 h-4" />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="w-full h-full object-contain filter brightness-105 group-hover:scale-105 transition-transform"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = "none";
+            }}
+          />
+        </Link>
 
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col whitespace-nowrap overflow-hidden flex-1"
+        {/* Navigation Items (Canva Slim Style: Clean Centered Tile) */}
+        <nav className="flex flex-col items-center gap-1.5 w-full">
+          {navItems.map((item) => {
+            const isActive = pathname === item.path || (item.path === "/settings" && pathname.startsWith("/settings"));
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`w-[58px] h-[54px] rounded-xl flex flex-col items-center justify-center transition-all duration-150 group cursor-pointer ${
+                  isActive
+                    ? "bg-indigo-50 text-indigo-600 font-semibold border border-indigo-100 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80"
+                }`}
+                title={item.name}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-text-primary truncate">
-                    {profile.display_name || "Surat Anchor"}
-                  </span>
-                  <span className="text-[10px] font-bold px-1 py-0.2 rounded bg-brand-yellow/20 text-brand-yellow border border-brand-yellow/30">
-                    PRO
-                  </span>
-                </div>
-                <span className="text-[10px] text-text-muted truncate">
-                  {profile.channel_handle || "@surat.prarambh"}
+                <Icon className={`w-5 h-5 transition-transform group-hover:scale-105 ${isActive ? "text-indigo-600" : "text-slate-500 group-hover:text-slate-800"}`} />
+                <span className={`text-[10px] tracking-tight mt-1 leading-none ${isActive ? "font-semibold text-indigo-600" : "font-medium text-slate-500 group-hover:text-slate-800"}`}>
+                  {item.name}
                 </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Bottom: User Profile with integrated online status badge */}
+      <div className="flex flex-col items-center">
+        <Link
+          href="/settings/profile"
+          className="relative w-9 h-9 rounded-full bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 flex items-center justify-center text-slate-600 hover:text-indigo-600 transition-colors shadow-2xs group"
+          title={profile.display_name || "Surat Anchor"}
+        >
+          <User className="w-4 h-4 group-hover:scale-105 transition-transform" />
+          {/* Active online green dot */}
+          <span 
+            className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"
+            title="Pipeline Active & Connected"
+          />
         </Link>
       </div>
-    </motion.aside>
+    </aside>
   );
 }

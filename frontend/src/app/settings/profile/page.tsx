@@ -39,20 +39,20 @@ export default function ProfileSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-6">
+      <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-xs space-y-6">
         <div>
-          <h2 className="text-lg font-bold font-outfit text-text-primary">
+          <h2 className="text-lg font-bold font-inter text-slate-900">
             Profile & Channel Identity
           </h2>
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-slate-500">
             Configure how your identity appears across generated Reels and Instagram publications.
           </p>
         </div>
 
         <form onSubmit={handleSave} className="space-y-5">
           {/* Avatar & Branding Header */}
-          <div className="flex items-center gap-5 p-4 rounded-xl bg-bg-elevated/60 border border-border">
-            <div className="relative w-16 h-16 rounded-full ring-2 ring-brand-pink/50 p-1 shrink-0 bg-bg-surface">
+          <div className="flex items-center gap-5 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div className="relative w-16 h-16 rounded-full ring-2 ring-indigo-200 p-1 shrink-0 bg-white">
               <img 
                 src="/logo.png" 
                 alt="Channel Avatar" 
@@ -60,10 +60,10 @@ export default function ProfileSettingsPage() {
               />
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-bold text-text-primary">
+              <h3 className="text-sm font-bold text-slate-900">
                 Prarambh Channel Badge
               </h3>
-              <p className="text-xs text-text-muted">
+              <p className="text-xs text-slate-500">
                 Official Gujarati Newsroom Avatar & Watermark Asset
               </p>
             </div>
@@ -71,55 +71,55 @@ export default function ProfileSettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-primary">
+              <label className="text-xs font-semibold text-slate-700">
                 Display Name / Presenter Title
               </label>
               <input
                 type="text"
                 value={formData.display_name}
                 onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
                 placeholder="e.g. Surat News Anchor"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-primary">
+              <label className="text-xs font-semibold text-slate-700">
                 Instagram Channel Handle
               </label>
               <input
                 type="text"
                 value={formData.channel_handle}
                 onChange={(e) => setFormData({ ...formData, channel_handle: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
                 placeholder="@surat.prarambh.news"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-primary">
+            <label className="text-xs font-semibold text-slate-700">
               Channel Tagline / Bio
             </label>
             <textarea
               rows={2}
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none transition-colors resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white outline-none transition-colors resize-none"
               placeholder="Surat ના સમાચાર, હવે Reels માં."
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-brand-yellow" />
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
                 Timezone
               </label>
               <select
                 value={formData.timezone}
                 onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary focus:border-brand-pink outline-none transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white outline-none transition-colors"
               >
                 <option value="Asia/Kolkata">Asia/Kolkata (IST +5:30)</option>
                 <option value="UTC">UTC</option>
@@ -128,13 +128,13 @@ export default function ProfileSettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-brand-cyan" />
+              <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-blue-600" />
                 Primary Broadcast Language
               </label>
-              <div className="px-3.5 py-2.5 rounded-xl bg-bg-elevated/50 border border-border text-xs text-text-muted flex items-center justify-between">
+              <div className="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500 flex items-center justify-between">
                 <span>Gujarati (ગુજરાતી)</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-pink/15 text-brand-pink border border-brand-pink/20">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200">
                   Locked
                 </span>
               </div>
@@ -145,7 +145,7 @@ export default function ProfileSettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white brand-gradient-bg glow-pink hover:opacity-95 active:scale-95 transition-all duration-150 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? "Saving Changes..." : "Save Profile Settings"}</span>

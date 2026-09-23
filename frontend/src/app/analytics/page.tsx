@@ -386,21 +386,21 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto bg-bg-base p-6 md:p-8 space-y-8">
+    <div className="h-full overflow-y-auto bg-[#F8F9FA] p-6 md:p-8 space-y-8">
       <div className="max-w-6xl w-full mx-auto space-y-8">
         
         {/* 1. Header & Live Retrieval Controls */}
-        <div className="p-6 rounded-3xl bg-bg-surface border border-border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-brand-yellow/15 text-brand-yellow flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-xl font-extrabold font-outfit text-text-primary tracking-tight">
+                <h1 className="text-xl font-bold font-inter text-slate-900 tracking-tight">
                   Instagram Growth & AI Analytics Hub
                 </h1>
-                <p className="text-xs text-text-muted">
+                <p className="text-xs text-slate-500">
                   Audience demographics, viral retention ratios, and Gemini 2.5 strategic growth audits.
                 </p>
               </div>
@@ -421,7 +421,7 @@ export default function AnalyticsPage() {
               type="button"
               onClick={() => loadAllAnalytics(true)}
               disabled={auditing}
-              className="py-2.5 px-4 rounded-xl text-xs font-bold text-white brand-gradient-bg glow-pink hover:opacity-95 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+              className="py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
             >
               {auditing ? (
                 <>
@@ -441,69 +441,69 @@ export default function AnalyticsPage() {
         {/* 2. Overview Metrics Cards (3 Cards) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* Card 1: Surat Hyperlocal Followers */}
-          <div className="p-6 rounded-2xl bg-bg-surface border border-border/80 shadow-sm relative overflow-hidden group hover:border-brand-pink/50 transition-all">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-brand-pink" />
-            <div className="flex items-center justify-between text-text-muted mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider font-outfit">Surat Hyperlocal Followers</span>
-              <div className="w-8 h-8 rounded-lg bg-brand-pink/15 text-brand-pink flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs relative overflow-hidden group hover:border-indigo-200 transition-all">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-600" />
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider font-inter">Surat Hyperlocal Followers</span>
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
                 <MapPin className="w-4 h-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black font-outfit text-text-primary">
+              <span className="text-3xl font-extrabold font-inter text-slate-900">
                 {demo.surat_follower_percentage?.toFixed(1)}%
               </span>
             </div>
-            <p className="text-xs text-brand-cyan font-mono mt-1">
+            <p className="text-xs text-indigo-600 font-mono mt-1">
               📍 {demo.surat_follower_count?.toLocaleString()} / {demo.total_audience_sample?.toLocaleString()} Local Viewers
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-accent-success/15 text-accent-success">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-success" />
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               <span>High Local Density (&gt;60%)</span>
             </div>
           </div>
 
           {/* Card 2: Average Reel Hook Retention */}
-          <div className="p-6 rounded-2xl bg-bg-surface border border-border/80 shadow-sm relative overflow-hidden group hover:border-brand-cyan/50 transition-all">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-brand-cyan" />
-            <div className="flex items-center justify-between text-text-muted mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider font-outfit">Avg Reel Hook Retention</span>
-              <div className="w-8 h-8 rounded-lg bg-brand-cyan/15 text-brand-cyan flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs relative overflow-hidden group hover:border-blue-200 transition-all">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600" />
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider font-inter">Avg Reel Hook Retention</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                 <Flame className="w-4 h-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-black font-outfit text-text-primary">
+              <span className="text-3xl font-extrabold font-inter text-slate-900">
                 {avgRetention.toFixed(1)}%
               </span>
             </div>
-            <p className="text-xs text-text-muted font-mono mt-1">
+            <p className="text-xs text-slate-500 font-mono mt-1">
               ⏱️ Avg Watch Time: {avgWatchTime.toFixed(1)}s / 30.0s
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-brand-cyan/15 text-brand-cyan">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
               <Zap className="w-3.5 h-3.5" />
               <span>🔥 Viral Benchmark ({avgRetention.toFixed(1)}%)</span>
             </div>
           </div>
 
           {/* Card 3: Best Performing Category */}
-          <div className="p-6 rounded-2xl bg-bg-surface border border-border/80 shadow-sm relative overflow-hidden group hover:border-brand-yellow/50 transition-all">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-brand-yellow" />
-            <div className="flex items-center justify-between text-text-muted mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider font-outfit">Best Performing Category</span>
-              <div className="w-8 h-8 rounded-lg bg-brand-yellow/15 text-brand-yellow flex items-center justify-center">
+          <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs relative overflow-hidden group hover:border-amber-200 transition-all">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-amber-500" />
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider font-inter">Best Performing Category</span>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4" />
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-extrabold font-outfit text-text-primary truncate">
+              <span className="text-xl font-bold font-inter text-slate-900 truncate">
                 {bestCatKey}
               </span>
             </div>
-            <p className="text-xs text-brand-yellow font-mono mt-1">
+            <p className="text-xs text-amber-700 font-mono mt-1">
               🚀 Share: {bestCatShareAvg.toFixed(1)}% &nbsp;|&nbsp; 💾 Save: {bestCatSaveAvg.toFixed(1)}%
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-brand-yellow/15 text-brand-yellow">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
               <Share2 className="w-3.5 h-3.5" />
               <span>🏆 Top WhatsApp Share Trigger</span>
             </div>
@@ -511,25 +511,25 @@ export default function AnalyticsPage() {
         </div>
 
         {/* 3. Performance Breakdown Table (Recent Reels) */}
-        <div className="p-6 rounded-3xl bg-bg-surface border border-border shadow-sm space-y-4">
+        <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-extrabold font-outfit text-text-primary flex items-center gap-2">
-                <Film className="w-4 h-4 text-brand-pink" />
+              <h2 className="text-base font-bold font-inter text-slate-900 flex items-center gap-2">
+                <Film className="w-4 h-4 text-indigo-600" />
                 Recent Reels Performance Breakdown
               </h2>
-              <p className="text-xs text-text-muted">
+              <p className="text-xs text-slate-500">
                 Engagement ratios, watch retention, and AI diagnostic benchmark badges across recent Reels.
               </p>
             </div>
-            <span className="text-[11px] font-mono text-text-muted bg-bg-elevated px-2.5 py-1 rounded-lg border border-border">
+            <span className="text-[11px] font-mono text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-[#E5E7EB]">
               {reelsList.length} Reels Analyzed
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-border">
+          <div className="overflow-x-auto rounded-xl border border-[#E5E7EB]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-bg-elevated text-text-muted font-bold uppercase text-[10px] tracking-wider border-b border-border">
+              <thead className="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] tracking-wider border-b border-[#E5E7EB]">
                 <tr>
                   <th className="py-3 px-4">Headline / Concept</th>
                   <th className="py-3 px-3">Category</th>
@@ -550,50 +550,50 @@ export default function AnalyticsPage() {
                   const retR = reel.retention_rate || 0;
                   
                   // AI Diagnostic badge logic
-                  let badge = { text: "⚡ Good Performance", color: "bg-brand-cyan/15 text-brand-cyan border-brand-cyan/30" };
+                  let badge = { text: "⚡ Good Performance", color: "bg-blue-50 text-blue-700 border-blue-200/60" };
                   if (shareR >= 4.5 || retR >= 68.0) {
-                    badge = { text: "🔥 Viral Winner", color: "bg-accent-success/15 text-accent-success border-accent-success/30" };
+                    badge = { text: "🔥 Viral Winner", color: "bg-emerald-50 text-emerald-700 border-emerald-200/60" };
                   } else if (saveR >= 3.0) {
-                    badge = { text: "📌 High Utility", color: "bg-purple-400/15 text-purple-400 border-purple-400/30" };
+                    badge = { text: "📌 High Utility", color: "bg-indigo-50 text-indigo-700 border-indigo-200/60" };
                   } else if (retR < 55.0) {
-                    badge = { text: "⚠️ Hook Needs Work", color: "bg-brand-yellow/15 text-brand-yellow border-brand-yellow/30" };
+                    badge = { text: "⚠️ Hook Needs Work", color: "bg-amber-50 text-amber-700 border-amber-200/60" };
                   }
 
                   const firstLine = (reel.caption || "").split("\n")[0] || `Surat News Reel #${reel.id}`;
 
                   return (
-                    <tr key={reel.id || idx} className="hover:bg-bg-elevated/40 transition-colors">
-                      <td className="py-3 px-4 font-gujarati font-bold text-text-primary max-w-[220px] truncate" title={reel.caption}>
+                    <tr key={reel.id || idx} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100">
+                      <td className="py-3 px-4 font-gujarati font-bold text-slate-900 max-w-[220px] truncate" title={reel.caption}>
                         {firstLine}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-bg-elevated text-brand-cyan border border-border">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
                           {firstLine.includes("C01") ? "C01 Crime" : firstLine.includes("A01") ? "A01 Civic" : firstLine.includes("B01") ? "B01 Trade" : firstLine.includes("F01") ? "F01 Festival" : "T01 Traffic"}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right font-mono text-text-primary">
+                      <td className="py-3 px-3 text-right font-mono text-slate-900">
                         {reel.reach?.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono text-text-muted">
+                      <td className="py-3 px-3 text-right font-mono text-slate-500">
                         {reel.shares?.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-brand-pink">
+                      <td className="py-3 px-3 text-right font-mono font-semibold text-indigo-600">
                         {shareR.toFixed(1)}%
                       </td>
-                      <td className="py-3 px-3 text-right font-mono text-text-muted">
+                      <td className="py-3 px-3 text-right font-mono text-slate-500">
                         {reel.saved?.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-purple-400">
+                      <td className="py-3 px-3 text-right font-mono font-semibold text-indigo-600">
                         {saveR.toFixed(1)}%
                       </td>
-                      <td className="py-3 px-3 text-right font-mono text-text-muted">
+                      <td className="py-3 px-3 text-right font-mono text-slate-500">
                         {reel.avg_watch_time?.toFixed(1)}s
                       </td>
-                      <td className="py-3 px-3 text-right font-mono font-extrabold text-brand-cyan">
+                      <td className="py-3 px-3 text-right font-mono font-bold text-blue-600">
                         {retR.toFixed(1)}%
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border inline-block ${badge.color}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border inline-block ${badge.color}`}>
                           {badge.text}
                         </span>
                       </td>
@@ -608,66 +608,66 @@ export default function AnalyticsPage() {
         {/* 4. Gemini Strategic Insights (Interactive Expanders) */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-brand-pink" />
-            <h2 className="text-lg font-extrabold font-outfit text-text-primary tracking-tight">
+            <Sparkles className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-lg font-bold font-inter text-slate-900 tracking-tight">
               Gemini 2.5 Strategic Growth Audit
             </h2>
           </div>
 
           {/* Expander 1: Audience Demographics & Persona */}
-          <div className="rounded-2xl bg-bg-surface border border-border shadow-sm overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-xs overflow-hidden transition-all">
             <button
               type="button"
               onClick={() => toggleSection("persona")}
-              className="w-full p-5 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors"
+              className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/70 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-brand-cyan/15 text-brand-cyan flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                   <Users className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">🎯 Audience Demographics & Persona</h3>
-                  <p className="text-[11px] text-text-muted">Hyperlocal geographic concentration & age distribution</p>
+                  <h3 className="text-sm font-bold text-slate-900">🎯 Audience Demographics & Persona</h3>
+                  <p className="text-[11px] text-slate-500">Hyperlocal geographic concentration & age distribution</p>
                 </div>
               </div>
-              {openSection.persona ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
+              {openSection.persona ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
             </button>
 
             {openSection.persona && (
-              <div className="p-5 pt-0 space-y-4 border-t border-border/60">
-                <div className="p-4 rounded-xl bg-bg-elevated border-l-4 border-brand-cyan text-xs text-text-primary leading-relaxed">
-                  <p className="font-semibold text-brand-cyan mb-1">Audience Persona Analysis:</p>
+              <div className="p-5 pt-0 space-y-4 border-t border-[#E5E7EB]">
+                <div className="p-4 rounded-xl bg-slate-50 border-l-4 border-indigo-600 text-xs text-slate-700 leading-relaxed">
+                  <p className="font-semibold text-indigo-700 mb-1">Audience Persona Analysis:</p>
                   {audit.audience_summary}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Top Cities */}
-                  <div className="p-4 rounded-xl bg-bg-elevated border border-border space-y-2">
-                    <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-brand-pink" />
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-rose-500" />
                       Top Audience Cities
                     </h4>
                     <div className="space-y-1.5 text-xs">
                       {demo.top_cities?.slice(0, 5).map((c: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between p-1.5 rounded bg-bg-surface border border-border/50">
-                          <span className="font-medium text-text-primary">{c.city}</span>
-                          <span className="font-mono font-bold text-brand-cyan">{c.percentage}% ({c.count?.toLocaleString()})</span>
+                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/70">
+                          <span className="font-medium text-slate-800">{c.city}</span>
+                          <span className="font-mono font-bold text-indigo-600">{c.percentage}% ({c.count?.toLocaleString()})</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Age Distribution */}
-                  <div className="p-4 rounded-xl bg-bg-elevated border border-border space-y-2">
-                    <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-brand-yellow" />
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-amber-500" />
                       Age Bracket Distribution
                     </h4>
                     <div className="space-y-1.5 text-xs">
                       {demo.age_distribution?.map((a: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between p-1.5 rounded bg-bg-surface border border-border/50">
-                          <span className="font-medium text-text-primary">{a.bracket} years</span>
-                          <span className="font-mono font-bold text-brand-yellow">{a.percentage}% ({a.count?.toLocaleString()})</span>
+                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/70">
+                          <span className="font-medium text-slate-800">{a.bracket} years</span>
+                          <span className="font-mono font-bold text-amber-600">{a.percentage}% ({a.count?.toLocaleString()})</span>
                         </div>
                       ))}
                     </div>
@@ -678,34 +678,34 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Expander 2: Mistakes Detected in Current Reels */}
-          <div className="rounded-2xl bg-bg-surface border border-border shadow-sm overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-xs overflow-hidden transition-all">
             <button
               type="button"
               onClick={() => toggleSection("mistakes")}
-              className="w-full p-5 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors"
+              className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/70 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-accent-danger/15 text-accent-danger flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
                   <ShieldAlert className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">🚨 Mistakes Detected in Current Reels</h3>
-                  <p className="text-[11px] text-text-muted">Critical drop-off points, hook flaws, and winning patterns</p>
+                  <h3 className="text-sm font-bold text-slate-900">🚨 Mistakes Detected in Current Reels</h3>
+                  <p className="text-[11px] text-slate-500">Critical drop-off points, hook flaws, and winning patterns</p>
                 </div>
               </div>
-              {openSection.mistakes ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
+              {openSection.mistakes ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
             </button>
 
             {openSection.mistakes && (
-              <div className="p-5 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/60">
+              <div className="p-5 pt-0 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[#E5E7EB]">
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-accent-danger flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-rose-600 flex items-center gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     Critical Flaws & Drop-off Triggers
                   </h4>
                   <div className="space-y-2">
                     {audit.critical_mistakes_detected?.map((m: string, i: number) => (
-                      <div key={i} className="p-3 rounded-xl bg-accent-danger/10 border-l-3 border-accent-danger text-xs text-text-primary leading-relaxed">
+                      <div key={i} className="p-3 rounded-xl bg-rose-50 border-l-4 border-rose-500 text-xs text-rose-900 leading-relaxed">
                         {m}
                       </div>
                     ))}
@@ -713,13 +713,13 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-accent-success flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Top Winning Patterns
                   </h4>
                   <div className="space-y-2">
                     {audit.top_winning_patterns?.map((p: string, i: number) => (
-                      <div key={i} className="p-3 rounded-xl bg-accent-success/10 border-l-3 border-accent-success text-xs text-text-primary leading-relaxed">
+                      <div key={i} className="p-3 rounded-xl bg-emerald-50 border-l-4 border-emerald-500 text-xs text-emerald-900 leading-relaxed">
                         {p}
                       </div>
                     ))}
@@ -730,22 +730,22 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Expander 3: Daily Authentic Surat Viral News Feed & Reel Studio Ideas */}
-          <div className="rounded-2xl bg-bg-surface border border-border shadow-sm overflow-hidden transition-all">
-            <div className="w-full p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 bg-gradient-to-r from-bg-surface via-bg-elevated/40 to-bg-surface">
+          <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-xs overflow-hidden transition-all">
+            <div className="w-full p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E5E7EB] bg-slate-50/60">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => toggleSection("ideas")}>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-pink to-brand-cyan text-white flex items-center justify-center shadow-md shadow-brand-pink/20">
-                  <Flame className="w-5 h-5 animate-pulse" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center shadow-xs">
+                  <Flame className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-extrabold text-text-primary">
+                    <h3 className="text-base font-bold text-slate-900">
                       🔥 સુરત વાયરલ ન્યૂઝ રીલ્સ આઈડિયાઝ (Daily Authentic Viral News)
                     </h3>
-                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-success/15 text-accent-success border border-accent-success/30 items-center gap-1">
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 items-center gap-1">
                       <BadgeCheck className="w-3 h-3" /> 100% સાચા અને પ્રમાણિત સમાચાર
                     </span>
                   </div>
-                  <p className="text-xs text-text-muted">
+                  <p className="text-xs text-slate-500">
                     રોજિંદા 5 સત્ય, ઉપયોગી અને હાઈ-શેર વાયરલ સમાચાર | સ્ક્રિપ્ટ, કેપ્શન અને વિગતવાર ડિસ્ક્રિપ્શન સાથે
                   </p>
                 </div>
@@ -757,18 +757,18 @@ export default function AnalyticsPage() {
                   type="button"
                   onClick={handleRefreshNews}
                   disabled={isNewsLoading}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-bg-elevated hover:bg-border text-text-primary border border-border/80 flex items-center gap-2 hover:border-brand-cyan/50 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 flex items-center gap-2 transition-all shadow-2xs active:scale-95 disabled:opacity-50"
                   title="તાજા 5 સમાચાર રિફ્રેશ કરો"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 text-brand-cyan ${isNewsLoading ? "animate-spin" : ""}`} />
-                  <span>{isNewsLoading ? "લોડિંગ..." : "🔄 રિફ્રેશ (Refresh 5 News)"}</span>
+                  <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isNewsLoading ? "animate-spin" : ""}`} />
+                  <span>{isNewsLoading ? "લોડિંગ..." : "🔄 રિફ્રેશ"}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleGetMoreNews}
                   disabled={isNewsLoadingMore}
-                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-brand-pink to-pink-600 hover:from-brand-pink/90 hover:to-pink-700 text-white flex items-center gap-2 shadow-sm shadow-brand-pink/30 transition-all active:scale-95 disabled:opacity-50"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 shadow-2xs transition-all active:scale-95 disabled:opacity-50"
                   title="લિસ્ટમાં વધુ 5 નવા સમાચાર ઉમેરો"
                 >
                   {isNewsLoadingMore ? (
@@ -776,13 +776,13 @@ export default function AnalyticsPage() {
                   ) : (
                     <PlusCircle className="w-3.5 h-3.5" />
                   )}
-                  <span>વધુ 5 સમાચાર લાવો (Get More News)</span>
+                  <span>વધુ 5 સમાચાર લાવો</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => toggleSection("ideas")}
-                  className="p-2 rounded-xl bg-bg-elevated hover:bg-border text-text-muted transition-colors ml-1"
+                  className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-500 border border-slate-200 transition-colors ml-1"
                 >
                   {openSection.ideas ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
@@ -792,12 +792,12 @@ export default function AnalyticsPage() {
             {openSection.ideas && (
               <div className="p-5 space-y-5">
                 {/* Search & Category Filter Toolbar */}
-                <div className="p-4 rounded-xl bg-bg-elevated/70 border border-border space-y-3">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     {/* Category Filter Pills */}
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-                      <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
-                        <Filter className="w-3 h-3 text-brand-cyan" /> કેટેગરી:
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
+                        <Filter className="w-3 h-3 text-indigo-600" /> કેટેગરી:
                       </span>
                       {[
                         { id: "ALL", label: "બધા (All)" },
@@ -814,8 +814,8 @@ export default function AnalyticsPage() {
                           onClick={() => handleCategoryFilter(cat.id)}
                           className={`px-3 py-1.5 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${
                             selectedNewsCategory === cat.id
-                              ? "bg-brand-pink text-white font-bold shadow-sm shadow-brand-pink/40"
-                              : "bg-bg-surface text-text-muted hover:text-text-primary border border-border/60 hover:border-brand-cyan/40"
+                              ? "bg-slate-900 text-white font-semibold shadow-2xs"
+                              : "bg-white text-slate-600 hover:text-slate-900 border border-[#E5E7EB] hover:bg-slate-50"
                           }`}
                         >
                           {cat.label}
@@ -825,13 +825,13 @@ export default function AnalyticsPage() {
 
                     {/* Area Selector Dropdown */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[11px] font-bold text-text-muted flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-brand-pink" /> વિસ્તાર:
+                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-indigo-600" /> વિસ્તાર:
                       </span>
                       <select
                         value={selectedNewsArea}
                         onChange={(e) => handleAreaFilter(e.target.value)}
-                        className="px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border text-xs text-text-primary font-medium focus:outline-none focus:border-brand-cyan"
+                        className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none focus:border-indigo-500"
                       >
                         <option value="ALL">સમગ્ર સુરત (All Surat)</option>
                         <option value="Adajan">અડાજણ (Adajan)</option>
@@ -851,18 +851,18 @@ export default function AnalyticsPage() {
                   {/* Search bar */}
                   <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 pt-1">
                     <div className="relative flex-1">
-                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
                         placeholder="કોઈ ચોક્કસ વિષય પર સમાચાર શોધો (દા.ત. મેટ્રો, સબસિડી, વેસુ રોડ, હીરા બુર્સ, વરસાદ)..."
                         value={newsSearchQuery}
                         onChange={(e) => setNewsSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-bg-surface border border-border text-xs text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-brand-cyan transition-all"
+                        className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 transition-all"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="px-3 py-1.5 rounded-lg bg-brand-cyan/20 hover:bg-brand-cyan/30 text-brand-cyan border border-brand-cyan/40 text-xs font-bold transition-colors shrink-0"
+                      className="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/60 text-xs font-semibold transition-colors shrink-0"
                     >
                       શોધો (Search)
                     </button>
@@ -879,21 +879,21 @@ export default function AnalyticsPage() {
                     return (
                       <div
                         key={itemId}
-                        className="p-5 rounded-2xl bg-bg-elevated border border-border/80 space-y-4 hover:border-brand-pink/50 transition-all shadow-sm"
+                        className="p-5 rounded-2xl bg-white border border-[#E5E7EB] space-y-4 hover:border-indigo-200 transition-all shadow-xs"
                       >
                         {/* Top Metadata Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                           <div className="flex items-start sm:items-center gap-2.5">
-                            <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-brand-pink to-pink-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm shadow-brand-pink/30">
+                            <span className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-100">
                               #{i + 1}
                             </span>
                             <div>
-                              <h4 className="text-sm font-extrabold font-gujarati text-text-primary leading-snug">
+                              <h4 className="text-sm font-bold font-gujarati text-slate-900 leading-snug">
                                 {idea.idea_title}
                               </h4>
                               {idea.source_department && (
-                                <p className="text-[10px] text-text-muted flex items-center gap-1 mt-0.5">
-                                  <BadgeCheck className="w-3 h-3 text-brand-cyan" />
+                                <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                  <BadgeCheck className="w-3 h-3 text-indigo-600" />
                                   સ્રોત: {idea.source_department}
                                 </p>
                               )}
@@ -901,76 +901,76 @@ export default function AnalyticsPage() {
                           </div>
 
                           <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
                               {idea.category_code}
                             </span>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-pink/15 text-brand-pink border border-brand-pink/30">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
                               📍 {idea.target_area}
                             </span>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-yellow/15 text-brand-yellow border border-brand-yellow/30 font-mono">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60 font-mono">
                               ⏱️ {idea.ideal_length_sec || 30}s
                             </span>
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-accent-success/15 text-accent-success border border-accent-success/30">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                               ✓ Authentic
                             </span>
                           </div>
                         </div>
 
                         {/* High-Converting Gujarati Hook Box */}
-                        <div className="p-3.5 rounded-xl bg-bg-surface border border-dashed border-brand-cyan/50 space-y-1.5 relative group">
+                        <div className="p-3.5 rounded-xl bg-amber-50/60 border border-dashed border-amber-300 space-y-1.5 relative group">
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-brand-cyan uppercase tracking-wider flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" /> 🎯 HIGH-CONVERTING GUJARATI HOOK (વાયરલ હૂક):
+                            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-amber-600" /> 🎯 HIGH-CONVERTING GUJARATI HOOK:
                             </span>
                             <button
                               type="button"
                               onClick={() => copyText(idea.gujarati_hook, "ગુજરાતી હૂક", `hook_${itemId}`)}
-                              className="text-[10px] text-text-muted hover:text-brand-cyan flex items-center gap-1 font-medium transition-colors"
+                              className="text-[10px] text-amber-700 hover:text-amber-900 flex items-center gap-1 font-medium transition-colors"
                             >
                               {copiedKey === `hook_${itemId}` ? (
-                                <Check className="w-3 h-3 text-accent-success" />
+                                <Check className="w-3 h-3 text-emerald-600" />
                               ) : (
                                 <Copy className="w-3 h-3" />
                               )}
                               <span>કોપી હૂક</span>
                             </button>
                           </div>
-                          <p className="text-sm font-bold font-gujarati text-brand-yellow leading-relaxed">
+                          <p className="text-sm font-bold font-gujarati text-slate-900 leading-relaxed">
                             "{idea.gujarati_hook}"
                           </p>
                         </div>
 
                         {/* Algorithmic Trigger */}
-                        <div className="text-xs text-text-muted bg-bg-surface/50 p-2.5 rounded-lg border border-border/40">
-                          <strong className="text-text-primary">💡 Algorithmic Trigger (શેર & સેવ વધશે):</strong>{" "}
+                        <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/70">
+                          <strong className="text-slate-800">💡 Algorithmic Trigger (શેર & સેવ વધશે):</strong>{" "}
                           <span>{idea.why_it_works}</span>
                         </div>
 
                         {/* Collapsible Rich Description & Reel Script Section */}
-                        <div className="rounded-xl border border-border/70 overflow-hidden bg-bg-surface/70">
+                        <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50/60">
                           <button
                             type="button"
                             onClick={() => toggleItemDetails(itemId)}
-                            className="w-full p-3 px-4 flex items-center justify-between text-left hover:bg-bg-elevated/80 transition-colors"
+                            className="w-full p-3 px-4 flex items-center justify-between text-left hover:bg-slate-100/70 transition-colors"
                           >
-                            <span className="text-xs font-bold text-text-primary flex items-center gap-2">
-                              <FileText className="w-3.5 h-3.5 text-brand-pink" />
+                            <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                              <FileText className="w-3.5 h-3.5 text-indigo-600" />
                               <span>📖 સંપૂર્ણ ન્યૂઝ સ્ટોરી, સ્ક્રિપ્ટ અને કેપ્શન (Full Description & Script)</span>
                             </span>
-                            <div className="flex items-center gap-1 text-[11px] text-brand-cyan font-semibold">
+                            <div className="flex items-center gap-1 text-[11px] text-indigo-600 font-semibold">
                               <span>{isExpanded ? "ઓછું જુઓ" : "વિગતવાર જુઓ"}</span>
                               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                             </div>
                           </button>
 
                           {isExpanded && (
-                            <div className="p-4 pt-0 space-y-3.5 border-t border-border/60 text-xs">
+                            <div className="p-4 pt-0 space-y-3.5 border-t border-slate-200 text-xs">
                               {/* 1. News Story & Facts */}
                               <div className="space-y-1.5 pt-3">
-                                <h5 className="font-bold text-brand-cyan flex items-center gap-1 text-xs">
+                                <h5 className="font-bold text-slate-800 flex items-center gap-1 text-xs">
                                   📰 વિગતવાર સમાચાર અને સત્ય તથ્યો (News Context):
                                 </h5>
-                                <p className="text-text-primary font-gujarati leading-relaxed bg-bg-elevated p-3 rounded-lg border border-border/50">
+                                <p className="text-slate-700 font-gujarati leading-relaxed bg-white p-3 rounded-lg border border-slate-200">
                                   {idea.description || "સુરત મહાનગરપાલિકા અને સત્તાવાર તંત્ર દ્વારા જાહેર કરાયેલ માહિતી મુજબ આ પ્રોજેક્ટથી સ્થાનિક નાગરિકોને સીધો મોટો ફાયદો થશે."}
                                 </p>
                               </div>
@@ -978,13 +978,13 @@ export default function AnalyticsPage() {
                               {/* 2. Key Facts Bullet Points */}
                               {keyFacts && keyFacts.length > 0 && (
                                 <div className="space-y-1.5">
-                                  <h5 className="font-bold text-brand-yellow flex items-center gap-1 text-[11px]">
+                                  <h5 className="font-bold text-amber-700 flex items-center gap-1 text-[11px]">
                                     📌 મહત્વના મુદ્દાઓ (Key Bullet Points):
                                   </h5>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     {keyFacts.map((fact: string, idx: number) => (
-                                      <div key={idx} className="p-2 rounded bg-bg-elevated/80 border border-border/40 text-[11px] text-text-primary font-gujarati flex items-center gap-1.5">
-                                        <span className="text-brand-yellow">•</span> {fact}
+                                      <div key={idx} className="p-2 rounded-lg bg-white border border-slate-200 text-[11px] text-slate-700 font-gujarati flex items-center gap-1.5">
+                                        <span className="text-amber-500">•</span> {fact}
                                       </div>
                                     ))}
                                   </div>
@@ -994,23 +994,23 @@ export default function AnalyticsPage() {
                               {/* 3. Voiceover Script with Audio Tags */}
                               <div className="space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                  <h5 className="font-bold text-accent-success flex items-center gap-1 text-xs">
+                                  <h5 className="font-bold text-emerald-700 flex items-center gap-1 text-xs">
                                     <Volume2 className="w-3.5 h-3.5" /> 🎙️ બોલવા માટે સ્ક્રિપ્ટ (Voiceover Script with Audio Tags):
                                   </h5>
                                   <button
                                     type="button"
                                     onClick={() => copyText(idea.voiceover_script || `[excited] ${idea.gujarati_hook} [pauses] ${idea.description || ""}`, "સ્ક્રિપ્ટ", `script_${itemId}`)}
-                                    className="text-[10px] text-text-muted hover:text-accent-success flex items-center gap-1 font-medium transition-colors"
+                                    className="text-[10px] text-slate-500 hover:text-emerald-700 flex items-center gap-1 font-medium transition-colors"
                                   >
                                     {copiedKey === `script_${itemId}` ? (
-                                      <Check className="w-3 h-3 text-accent-success" />
+                                      <Check className="w-3 h-3 text-emerald-600" />
                                     ) : (
                                       <Copy className="w-3 h-3" />
                                     )}
                                     <span>કોપી સ્ક્રિપ્ટ</span>
                                   </button>
                                 </div>
-                                <div className="p-3 rounded-lg bg-bg-elevated font-gujarati text-text-primary leading-relaxed border border-accent-success/20 text-xs">
+                                <div className="p-3 rounded-lg bg-white font-gujarati text-slate-800 leading-relaxed border border-emerald-200 text-xs">
                                   {idea.voiceover_script || `[excited] ${idea.gujarati_hook} [pauses] ${idea.description || "સુરતના મહત્વના સમાચારો જાણવા જોડાયેલા રહો."}`}
                                 </div>
                               </div>
@@ -1018,23 +1018,23 @@ export default function AnalyticsPage() {
                               {/* 4. Instagram Caption & Hashtags */}
                               <div className="space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                  <h5 className="font-bold text-brand-pink flex items-center gap-1 text-xs">
-                                    <Hash className="w-3.5 h-3.5" /> 📝 ઇન્સ્ટાગ્રામ કેપ્શન & વાયરલ હેશટેગ્સ (Universal SOP Caption):
+                                  <h5 className="font-bold text-indigo-700 flex items-center gap-1 text-xs">
+                                    <Hash className="w-3.5 h-3.5" /> 📝 ઇન્સ્ટાગ્રામ કેપ્શન & વાયરલ હેશટેગ્સ:
                                   </h5>
                                   <button
                                     type="button"
                                     onClick={() => copyText(idea.caption || `SURAT UPDATE | ${idea.category_code}\nLocation: ${idea.target_area}, Surat\n\nશું થયું?\n${idea.idea_title}\n\n#SuratNews #${idea.target_area}`, "કેપ્શન", `caption_${itemId}`)}
-                                    className="text-[10px] text-text-muted hover:text-brand-pink flex items-center gap-1 font-medium transition-colors"
+                                    className="text-[10px] text-slate-500 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors"
                                   >
                                     {copiedKey === `caption_${itemId}` ? (
-                                      <Check className="w-3 h-3 text-accent-success" />
+                                      <Check className="w-3 h-3 text-emerald-600" />
                                     ) : (
                                       <Copy className="w-3 h-3" />
                                     )}
                                     <span>કોપી કેપ્શન</span>
                                   </button>
                                 </div>
-                                <pre className="p-3 rounded-lg bg-bg-elevated font-mono text-[11px] text-text-muted leading-relaxed border border-border/50 whitespace-pre-wrap">
+                                <pre className="p-3 rounded-lg bg-white font-mono text-[11px] text-slate-600 leading-relaxed border border-slate-200 whitespace-pre-wrap">
                                   {idea.caption || `SURAT UPDATE | ${idea.category_code}\nLocation: ${idea.target_area}, Surat\n\nશું થયું?\n${idea.idea_title}\n\n#SuratNews #Surat #${idea.target_area}`}
                                 </pre>
                               </div>
@@ -1047,9 +1047,9 @@ export default function AnalyticsPage() {
                           <button
                             type="button"
                             onClick={() => toggleItemDetails(itemId)}
-                            className="text-xs font-semibold text-text-muted hover:text-text-primary flex items-center gap-1.5 transition-colors"
+                            className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors"
                           >
-                            <FileText className="w-3.5 h-3.5 text-brand-cyan" />
+                            <FileText className="w-3.5 h-3.5 text-indigo-600" />
                             <span>{isExpanded ? "ઓછી વિગતો છુપાવો" : "સંપૂર્ણ વિગતો & સ્ક્રિપ્ટ જુઓ"}</span>
                           </button>
 
@@ -1060,16 +1060,16 @@ export default function AnalyticsPage() {
                                 const fullKit = `【સમાચાર શીર્ષક】\n${idea.idea_title}\n\n【હૂક】\n${idea.gujarati_hook}\n\n【સ્ક્રિપ્ટ】\n${idea.voiceover_script || idea.description}\n\n【કેપ્શન】\n${idea.caption || ''}`;
                                 copyText(fullKit, "સંપૂર્ણ રીલ ડેટા", `all_${itemId}`);
                               }}
-                              className="px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-border text-text-primary border border-border text-xs font-semibold flex items-center gap-1.5 transition-all"
+                              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs"
                             >
-                              <Copy className="w-3 h-3 text-text-muted" />
+                              <Copy className="w-3 h-3 text-slate-400" />
                               <span>Copy All</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => handleApplyToStudio(idea)}
-                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-pink via-purple-600 to-brand-cyan hover:opacity-95 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-brand-pink/20 transition-all hover:scale-[1.02] active:scale-95"
+                              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-2 shadow-2xs transition-all active:scale-95"
                             >
                               <Sparkles className="w-3.5 h-3.5" />
                               <span>🚀 Reel બનાવો (Apply to Studio)</span>
@@ -1088,12 +1088,12 @@ export default function AnalyticsPage() {
                     type="button"
                     onClick={handleGetMoreNews}
                     disabled={isNewsLoadingMore}
-                    className="px-6 py-2.5 rounded-xl text-xs font-bold bg-bg-elevated hover:bg-border text-text-primary border border-border/80 inline-flex items-center gap-2 hover:border-brand-pink/40 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 inline-flex items-center gap-2 transition-all shadow-2xs active:scale-95 disabled:opacity-50"
                   >
                     {isNewsLoadingMore ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-brand-pink" />
+                      <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
                     ) : (
-                      <PlusCircle className="w-4 h-4 text-brand-pink" />
+                      <PlusCircle className="w-4 h-4 text-indigo-600" />
                     )}
                     <span>વધુ 5 વાયરલ સમાચાર લાવો (Get More News Ideas)</span>
                   </button>
@@ -1103,26 +1103,26 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Expander 4: Step-by-Step Algorithm Action Checklist */}
-          <div className="rounded-2xl bg-bg-surface border border-border shadow-sm overflow-hidden transition-all">
+          <div className="rounded-2xl bg-white border border-[#E5E7EB] shadow-xs overflow-hidden transition-all">
             <button
               type="button"
               onClick={() => toggleSection("checklist")}
-              className="w-full p-5 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors"
+              className="w-full p-5 flex items-center justify-between text-left hover:bg-slate-50/70 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-accent-success/15 text-accent-success flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
                   <CheckSquare className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary">📈 Step-by-Step Algorithm Action Checklist</h3>
-                  <p className="text-[11px] text-text-muted">Immediate editing, pacing, and posting optimizations</p>
+                  <h3 className="text-sm font-bold text-slate-900">📈 Step-by-Step Algorithm Action Checklist</h3>
+                  <p className="text-[11px] text-slate-500">Immediate editing, pacing, and posting optimizations</p>
                 </div>
               </div>
-              {openSection.checklist ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
+              {openSection.checklist ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
             </button>
 
             {openSection.checklist && (
-              <div className="p-5 pt-0 space-y-2 border-t border-border/60">
+              <div className="p-5 pt-0 space-y-2 border-t border-[#E5E7EB]">
                 {audit.immediate_action_fixes?.map((fix: string, i: number) => {
                   const isDone = Boolean(checkedItems[i]);
                   return (
@@ -1131,17 +1131,17 @@ export default function AnalyticsPage() {
                       onClick={() => toggleChecklist(i)}
                       className={`p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
                         isDone 
-                          ? "bg-accent-success/10 border-accent-success/40 text-text-primary"
-                          : "bg-bg-elevated border-border text-text-muted hover:border-brand-cyan/40"
+                          ? "bg-emerald-50 border-emerald-300 text-slate-800"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:border-indigo-300"
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isDone}
                         onChange={() => toggleChecklist(i)}
-                        className="w-4 h-4 rounded border-border accent-accent-success cursor-pointer"
+                        className="w-4 h-4 rounded border-slate-300 accent-indigo-600 cursor-pointer"
                       />
-                      <span className={`text-xs font-medium ${isDone ? "line-through text-text-muted" : "text-text-primary"}`}>
+                      <span className={`text-xs font-medium ${isDone ? "line-through text-slate-400" : "text-slate-800"}`}>
                         <strong>Step {i + 1}:</strong> {fix}
                       </span>
                     </div>
@@ -1153,56 +1153,57 @@ export default function AnalyticsPage() {
         </div>
 
         {/* 5. Production Timeline & Category Distribution Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-border/60">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-[#E5E7EB]">
           {/* Chart 1: Production Timeline */}
-          <div className="p-6 rounded-2xl bg-bg-surface border border-border shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold font-outfit text-text-primary flex items-center gap-2">
-                <Activity className="w-4 h-4 text-brand-pink" />
+              <h3 className="text-sm font-bold font-inter text-slate-900 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-indigo-600" />
                 Reels Production & Publish Velocity
               </h3>
-              <span className="text-[11px] text-text-muted font-mono">Past 7 Days</span>
+              <span className="text-[11px] text-slate-400 font-mono">Past 7 Days</span>
             </div>
 
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="pinkArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#E91E63" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#E91E63" stopOpacity={0} />
+                    <linearGradient id="indigoArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0.0} />
                     </linearGradient>
                     <linearGradient id="cyanArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00BCD4" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#00BCD4" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#26262F" vertical={false} />
-                  <XAxis dataKey="date" stroke="#8A8A94" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#8A8A94" fontSize={11} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#12121A",
-                      borderColor: "#26262F",
-                      borderRadius: "12px",
+                      backgroundColor: "#FFFFFF",
+                      borderColor: "#E2E8F0",
+                      borderRadius: "10px",
                       fontSize: "12px",
-                      color: "#F5F5F7",
+                      color: "#0F172A",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.07)",
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="reels"
                     name="Rendered Reels"
-                    stroke="#E91E63"
+                    stroke="#6366F1"
                     strokeWidth={2.5}
                     fillOpacity={1}
-                    fill="url(#pinkArea)"
+                    fill="url(#indigoArea)"
                   />
                   <Area
                     type="monotone"
                     dataKey="published"
                     name="Published Reels"
-                    stroke="#00BCD4"
+                    stroke="#0EA5E9"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#cyanArea)"
@@ -1213,34 +1214,35 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Chart 2: Category Distribution */}
-          <div className="p-6 rounded-2xl bg-bg-surface border border-border shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold font-outfit text-text-primary flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-brand-cyan" />
+              <h3 className="text-sm font-bold font-inter text-slate-900 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-indigo-600" />
                 Category Distribution
               </h3>
-              <span className="text-[11px] text-text-muted">Newsroom Breakdown</span>
+              <span className="text-[11px] text-slate-400">Newsroom Breakdown</span>
             </div>
 
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#26262F" vertical={false} />
-                  <XAxis dataKey="name" stroke="#8A8A94" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#8A8A94" fontSize={11} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                  <XAxis dataKey="name" stroke="#94A3B8" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#12121A",
-                      borderColor: "#26262F",
-                      borderRadius: "12px",
+                      backgroundColor: "#FFFFFF",
+                      borderColor: "#E2E8F0",
+                      borderRadius: "10px",
                       fontSize: "12px",
-                      color: "#F5F5F7",
+                      color: "#0F172A",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.07)",
                     }}
                   />
                   <Bar
                     dataKey="count"
                     name="Reels Count"
-                    fill="#FDD835"
+                    fill="#6366F1"
                     radius={[6, 6, 0, 0]}
                   />
                 </BarChart>

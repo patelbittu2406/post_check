@@ -8,14 +8,10 @@ export function ClientInit() {
 
   useEffect(() => {
     loadProfile();
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "light") {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-    } else {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    }
+    // Enforce Canva light theme across entire app
+    localStorage.setItem("theme", "light");
+    document.documentElement.classList.remove("dark");
+    document.documentElement.classList.add("light");
   }, [loadProfile]);
 
   return null;

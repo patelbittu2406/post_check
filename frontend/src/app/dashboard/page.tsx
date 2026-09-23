@@ -10,6 +10,7 @@ import {
   fetchBrollAssets,
   generateScriptAPI, 
   generateVoiceAPI, 
+  autoTagScriptAPI,
   renderVideoAPI, 
   publishInstagramAPI,
   uploadMediaAPI,
@@ -31,19 +32,25 @@ import {
   ChevronUp, 
   Sliders, 
   Volume2, 
-  VolumeX, 
   Type, 
   Music, 
   Trash2, 
   Layers, 
   RefreshCw, 
   FileText, 
-  Zap, 
-  ArrowRight,
+  Mic, 
+  BookOpen, 
+  Wand2, 
+  Tag,
+  ZoomIn,
+  ZoomOut,
+  Undo2,
+  Redo2,
   Shield,
   Eye,
-  Mic,
-  BookOpen
+  Settings2,
+  X,
+  Share2
 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 
@@ -68,17 +75,25 @@ export default function DashboardPage() {
   const [brollAssets, setBrollAssets] = useState<{ name: string; url: string; size_mb: number; type: string }[]>([]);
   const [bgmAssets, setBgmAssets] = useState<{ name: string; url: string; size_kb: number }[]>([]);
 
-  // Advanced Accordion State
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showCaptionCard, setShowCaptionCard] = useState(false);
+  // Canvas Top Toolbar states
+  const [zoomLevel, setZoomLevel] = useState<"fit" | "75" | "100">("fit");
+  const [showSafeZone, setShowSafeZone] = useState(true);
 
-  // Phone player video state
-  const [isPlayingPhoneVideo, setIsPlayingPhoneVideo] = useState(true);
-  const [isMutedPhoneVideo, setIsMutedPhoneVideo] = useState(false);
-  const phoneVideoRef = useRef<HTMLVideoElement | null>(null);
+  // Modals
+  const [showAdvancedModal, setShowAdvancedModal] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showCaptionDrawer, setShowCaptionDrawer] = useState(false);
 
-  // Uploading states
+  // Canvas Video Player & Scrubber state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(30);
+  const videoPlayerRef = useRef<HTMLVideoElement | null>(null);
+
+  // Uploading and tagging states
   const [isUploadingClip, setIsUploadingClip] = useState(false);
+  const [isAutoTagging, setIsAutoTagging] = useState(false);
+  const scriptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Load Categories, Areas, and Assets
   useEffect(() => {
@@ -95,23 +110,48 @@ export default function DashboardPage() {
         setBrollAssets(brRes.broll_files || []);
         setBgmAssets(bgRes.bgm_files || []);
       } catch (err) {
-        console.warn("Could not load initial studio data:", err);
+        console.warn("Could not load studio data:", err);
       }
     }
     loadData();
   }, []);
 
   // Sync Video Playback
-  const togglePlayPhoneVideo = () => {
-    if (phoneVideoRef.current) {
-      if (phoneVideoRef.current.paused) {
-        phoneVideoRef.current.play();
-        setIsPlayingPhoneVideo(true);
+  const togglePlay = () => {
+    if (videoPlayerRef.current) {
+      if (videoPlayerRef.current.paused) {
+        videoPlayerRef.current.play();
+        setIsPlaying(true);
       } else {
-        phoneVideoRef.current.pause();
-        setIsPlayingPhoneVideo(false);
+        videoPlayerRef.current.pause();
+        setIsPlaying(false);
+      }
+    } else {
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoPlayerRef.current) {
+      setCurrentTime(videoPlayerRef.current.currentTime);
+      if (videoPlayerRef.current.duration) {
+        setDuration(videoPlayerRef.current.duration);
       }
     }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number(e.target.value);
+    setCurrentTime(time);
+    if (videoPlayerRef.current) {
+      videoPlayerRef.current.currentTime = time;
+    }
+  };
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   // --------------------------------------------------------------------------
@@ -119,15 +159,14 @@ export default function DashboardPage() {
   // --------------------------------------------------------------------------
   const handleStep1GenerateScript = async () => {
     if (!draft.rawDetails.trim()) {
-      toast.warning("કૃપા કરીને સમાચારની વિગત અથવા નોંધ દાખલ કરો.");
+      toast.warning("Please enter your news details first");
       return;
     }
 
     setIsGeneratingScript(true);
-    const toastId = toast.loading("🤖 AI સમાચાર સ્ક્રિપ્ટ અને હેડલાઇન્સ બનાવી રહ્યું છે...");
+    const toastId = toast.loading("✨ Generating script & headlines with Gemini AI...");
 
     try {
-      // 1. Script & Headline Generation
       const scriptRes = await generateScriptAPI({
         raw_details: draft.rawDetails,
         category_code: draft.categoryCode || "N01",
@@ -146,18 +185,17 @@ export default function DashboardPage() {
         line2Headline: l2,
         voiceoverScript: scriptText,
         caption: cap,
-        // Reset audio so user reads/reviews the script before generating voice
         voiceoverAudioUrl: "",
         voiceoverFilename: "",
       });
 
-      toast.success("✨ સ્ક્રિપ્ટ તૈયાર થઈ ગઈ છે! કૃપા કરીને તેને વાંચી લો, પછી નીચે '🎙️ અવાજ જનરેટ કરો' બટન દબાવો.", {
+      toast.success("✨ Script & Headlines ready! Review and generate voice below.", {
         id: toastId,
-        duration: 4500,
+        duration: 4000,
       });
     } catch (err: any) {
       console.error("Step 1 Script Generation Error:", err);
-      toast.error(`સ્ક્રિપ્ટ બનાવવામાં ભૂલ આવી: ${err.message || "Unknown error"}`, { id: toastId });
+      toast.error(`Script generation failed: ${err.message || "Unknown error"}`, { id: toastId });
     } finally {
       setIsGeneratingScript(false);
     }
@@ -169,12 +207,12 @@ export default function DashboardPage() {
   const handleGenerateVoice = async () => {
     const textToSpeak = draft.voiceoverScript.trim();
     if (!textToSpeak) {
-      toast.warning("કૃપા કરીને પહેલા સ્ક્રિપ્ટ લખો અથવા ઉપરથી AI સ્ક્રિપ્ટ જનરેટ કરો.");
+      toast.warning("Please enter or generate a script first.");
       return;
     }
 
     setIsGeneratingVoice(true);
-    const toastId = toast.loading("🎙️ ElevenLabs Multilingual v2 દ્વારા અવાજ જનરેટ થઈ રહ્યો છે...");
+    const toastId = toast.loading("🎙️ ElevenLabs Multilingual v2 is generating voiceover...");
 
     try {
       const voiceRes = await generateVoiceAPI({
@@ -188,16 +226,84 @@ export default function DashboardPage() {
           voiceoverAudioUrl: voiceRes.audio_url,
           voiceoverFilename: voiceRes.voiceover_filename,
         });
-        toast.success("✅ અવાજ સફળતાપૂર્વક તૈયાર થઈ ગયો!", { id: toastId });
+        toast.success("✅ Voiceover generated successfully!", { id: toastId });
       } else {
-        toast.error("અવાજ ફાઇલ મળી નથી. ફરી પ્રયાસ કરો.", { id: toastId });
+        toast.error("Audio generation failed. Please try again.", { id: toastId });
       }
     } catch (err: any) {
       console.error("Voice Generation Error:", err);
-      toast.error(`અવાજ જનરેશનમાં ભૂલ આવી: ${err.message || "Unknown error"}`, { id: toastId });
+      toast.error(`Voice generation error: ${err.message || "Unknown error"}`, { id: toastId });
     } finally {
       setIsGeneratingVoice(false);
     }
+  };
+
+  // --------------------------------------------------------------------------
+  // Auto-Tag Plain Script with Gemini (Inserts [excited], [pauses], etc.)
+  // --------------------------------------------------------------------------
+  const handleAutoTagScript = async () => {
+    const textToTag = draft.voiceoverScript.trim();
+    if (!textToTag) {
+      toast.warning("કૃપા કરીને પહેલા પ્લેન સ્ક્રિપ્ટ લખો અથવા પેસ્ટ કરો.");
+      return;
+    }
+
+    setIsAutoTagging(true);
+    const toastId = toast.loading("✨ Gemini સ્ક્રિપ્ટમાં નેચરલ [excited], [pauses] ટેગ્સ ઉમેરી રહ્યું છે...");
+
+    try {
+      const res = await autoTagScriptAPI({
+        script_text: textToTag,
+        category_code: draft.categoryCode || "N01",
+        area: draft.area || "All Surat (સમગ્ર સુરત)",
+        provider: "Gemini",
+        generate_voice: false,
+      });
+
+      if (res && res.tagged_script) {
+        updateDraft({
+          voiceoverScript: res.tagged_script,
+        });
+        toast.success("✅ Gemini એ સ્ક્રિપ્ટમાં યોગ્ય ઓડિયો ટેગ્સ ઉમેરી દીધા!", {
+          id: toastId,
+          duration: 4000,
+        });
+      } else {
+        toast.error("ટેગ્સ ઉમેરવામાં નિષ્ફળતા મળી.", { id: toastId });
+      }
+    } catch (err: any) {
+      console.error("Gemini Auto-Tag Error:", err);
+      toast.error(`ટેગ્સ ઉમેરવામાં ભૂલ આવી: ${err.message || "Unknown error"}`, { id: toastId });
+    } finally {
+      setIsAutoTagging(false);
+    }
+  };
+
+  // Remove bracketed tags
+  const handleStripTags = () => {
+    const current = draft.voiceoverScript;
+    if (!current.trim()) return;
+    const stripped = current.replace(/\[[a-zA-Z_ ]+\]|\<[a-zA-Z_ ]+\>/g, " ").replace(/\s+/g, " ").trim();
+    updateDraft({ voiceoverScript: stripped });
+    toast.info("ટેગ્સ હટાવીને પ્લેન સ્ક્રિપ્ટ બનાવી દીધી.");
+  };
+
+  // Insert tag at cursor position
+  const handleInsertTag = (tag: string) => {
+    const textarea = scriptTextareaRef.current;
+    if (!textarea) {
+      updateDraft({ voiceoverScript: draft.voiceoverScript ? `${draft.voiceoverScript} ${tag} ` : `${tag} ` });
+      return;
+    }
+    const start = textarea.selectionStart ?? draft.voiceoverScript.length;
+    const end = textarea.selectionEnd ?? draft.voiceoverScript.length;
+    const current = draft.voiceoverScript;
+    const newText = current.substring(0, start) + `${tag} ` + current.substring(end);
+    updateDraft({ voiceoverScript: newText });
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + tag.length + 1, start + tag.length + 1);
+    }, 50);
   };
 
   // --------------------------------------------------------------------------
@@ -206,7 +312,7 @@ export default function DashboardPage() {
   const onDropVideo = async (acceptedFiles: File[]) => {
     if (!acceptedFiles || acceptedFiles.length === 0) return;
     setIsUploadingClip(true);
-    const tId = toast.loading(`Uploading ${acceptedFiles.length} video clip(s)...`);
+    const tId = toast.loading(`Uploading ${acceptedFiles.length} clip(s)...`);
 
     try {
       if (draft.videoMode === "single") {
@@ -246,20 +352,20 @@ export default function DashboardPage() {
   // --------------------------------------------------------------------------
   const handleStep2Render = async () => {
     if (!draft.voiceoverFilename && !draft.voiceoverAudioUrl) {
-      toast.warning("પહેલા સ્ક્રિપ્ટ વાંચીને '🎙️ અવાજ જનરેટ કરો' બટન દબાવીને અવાજ તૈયાર કરો.");
+      toast.warning("Please generate voiceover audio first before rendering.");
       return;
     }
 
     setIsRenderingVideo(true);
-    const toastId = toast.loading("🎬 [Step 2] રીલનું રેન્ડરિંગ થઈ રહ્યું છે... (Dynamic 9:16 + Headlines + Subtitles)");
+    const toastId = toast.loading("🎬 Rendering 9:16 Video Reel with headlines and subtitles...");
 
     try {
       const renderRes = await renderVideoAPI({
-        video_mode: draft.videoMode,
-        single_video_filename: draft.uploadedSingleClip || draft.selectedStockBroll || "traffic_stock_1.mp4",
+        video_mode: draft.videoMode === "multi" ? "multi" : "single",
+        single_video_filename: draft.uploadedSingleClip || draft.selectedStockBroll || "surat_city_loop.mp4",
         multi_clip_filenames: draft.uploadedMultiClips.length > 0 ? draft.uploadedMultiClips : undefined,
         voiceover_filename: draft.voiceoverFilename || "voiceover.wav",
-        bg_music_filename: draft.selectedBgm || "breaking_news_theme.mp3",
+        bg_music_filename: draft.selectedBgm || "surat_news_bgm.mp3",
         line1_text: draft.line1Headline || "સુરત ન્યૂઝ અપડેટ",
         line2_text: draft.line2Headline || "તાજા સમાચાર",
         line1_bg: profile.line1_bg || "#FF0033",
@@ -279,13 +385,13 @@ export default function DashboardPage() {
           renderedVideoUrl: renderRes.video_url,
           renderedVideoFilename: renderRes.video_filename,
         });
-        toast.success("🎉 રીલ તૈયાર થઈ ગઈ છે! હવે તેને Instagram પર પબ્લિશ કરી શકો છો.", { id: toastId });
+        toast.success("🎉 Reel successfully rendered! Ready to publish.", { id: toastId });
       } else {
-        toast.info("રેન્ડર પૂરું થયું, વિડિયો તપાસો.", { id: toastId });
+        toast.info("Render finished. Check video canvas.", { id: toastId });
       }
     } catch (err: any) {
       console.error("Step 2 Render Error:", err);
-      toast.error(`રેન્ડરિંગમાં ભૂલ: ${err.message || "Unknown error"}`, { id: toastId });
+      toast.error(`Rendering failed: ${err.message || "Unknown error"}`, { id: toastId });
     } finally {
       setIsRenderingVideo(false);
     }
@@ -296,693 +402,631 @@ export default function DashboardPage() {
   // --------------------------------------------------------------------------
   const handleStep3Publish = async () => {
     if (!draft.renderedVideoFilename && !draft.renderedVideoUrl) {
-      toast.warning("પહેલાં '🎬 2. Render Final Reel' પર ક્લિક કરીને રીલ તૈયાર કરો.");
+      toast.warning("Please render the reel first before publishing.");
       return;
     }
 
     setIsPublishing(true);
-    const toastId = toast.loading("🚀 [Step 3] Meta Graph API દ્વારા Instagram પર Reel અપલોડ થઈ રહી છે...");
+    const toastId = toast.loading("🚀 Publishing 9:16 Reel to Instagram...");
 
     try {
       const pubRes = await publishInstagramAPI({
-        video_filename: draft.renderedVideoFilename || "rendered_reel.mp4",
-        caption: draft.caption || `${draft.line1Headline}\n${draft.line2Headline}\n\n#SuratNews #Surat`,
+        video_filename: draft.renderedVideoFilename || "final_rendered_reel.mp4",
+        caption: draft.caption || "Surat Latest News #Surat #News",
         dry_run: false,
       });
 
-      if (pubRes && (pubRes.status === "success" || pubRes.post_id)) {
-        toast.success("🌟 અભિનંદન! Reel Instagram પર સફળતાપૂર્વક પબ્લિશ થઈ ગઈ છે!", {
-          id: toastId,
-          duration: 5000,
-        });
+      if (pubRes && (pubRes.media_id || pubRes.status === "success")) {
+        toast.success("🎉 Reel successfully published to Instagram!", { id: toastId, duration: 6000 });
+        setShowPublishModal(false);
       } else {
-        toast.success("✅ Reel તૈયાર છે અને Instagram ક્યૂમાં ઉમેરાઈ ગઈ છે!", { id: toastId });
+        toast.info(pubRes.message || "Publish request sent to Instagram.", { id: toastId });
       }
     } catch (err: any) {
       console.error("Step 3 Publish Error:", err);
-      toast.error(`પબ્લિશિંગમાં ભૂલ આવી: ${err.message || "Instagram API error"}`, { id: toastId });
+      toast.error(`Publish failed: ${err.message || "Check Instagram connection in Settings."}`, { id: toastId });
     } finally {
       setIsPublishing(false);
     }
   };
 
-  const isReelReadyToPublish = Boolean(draft.renderedVideoUrl);
+  const isReelReadyToPublish = Boolean(draft.renderedVideoUrl || draft.renderedVideoFilename);
 
   return (
-    <div className="h-full flex flex-col bg-bg-base overflow-hidden">
-      {/* --------------------------------------------------------------------- */}
-      {/* HEADER BAR: Category + Area + Single/Multi Toggle                     */}
-      {/* --------------------------------------------------------------------- */}
-      <div className="h-16 px-6 border-b border-border bg-bg-surface flex flex-wrap items-center justify-between gap-4 shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          {/* Category Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-text-muted uppercase tracking-wider">કેટેગરી:</span>
-            <select
-              value={draft.categoryCode || "N01"}
-              onChange={(e) => updateDraft({ categoryCode: e.target.value })}
-              className="px-3 py-1.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary font-bold focus:outline-none focus:border-brand-pink"
-            >
-              {categories.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code} — {c.emoji ? `${c.emoji} ` : ""}{c.name}
-                </option>
-              ))}
-            </select>
+    <div className="flex h-full w-full bg-[#F8F9FA] overflow-hidden select-none">
+      {/* ===================================================================== */}
+      {/* ZONE B: Contextual Left Drawer (Canva Studio Controls Panel, ~360px)  */}
+      {/* ===================================================================== */}
+      <aside className="w-[360px] h-full bg-white border-r border-[#E5E7EB] flex flex-col shrink-0 z-20 overflow-hidden shadow-xs">
+        {/* Drawer Header */}
+        <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-600" />
+              Studio Controls
+            </h2>
+            <p className="text-[11px] text-slate-500">Create Surat 9:16 Instagram Reel</p>
           </div>
-
-          {/* Area Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-text-muted uppercase tracking-wider">વિસ્તાર:</span>
-            <select
-              value={draft.area || "All Surat"}
-              onChange={(e) => updateDraft({ area: e.target.value })}
-              className="px-3 py-1.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary font-bold focus:outline-none focus:border-brand-cyan"
-            >
-              <option value="All Surat">સમગ્ર સુરત (All Surat)</option>
-              {areas.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Video Mode Toggle & Actions */}
-        <div className="flex items-center gap-3">
-          {/* Clean Toggle: Single vs Multi */}
-          <div className="p-1 rounded-xl bg-bg-elevated border border-border flex items-center gap-1 text-xs">
-            <button
-              onClick={() => updateDraft({ videoMode: "single" })}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                draft.videoMode === "single"
-                  ? "bg-brand-pink text-white shadow-sm"
-                  : "text-text-muted hover:text-text-primary"
-              }`}
-            >
-              Single Video
-            </button>
-            <button
-              onClick={() => updateDraft({ videoMode: "multi" })}
-              className={`px-3 py-1 rounded-lg font-bold transition-all ${
-                draft.videoMode === "multi"
-                  ? "bg-brand-pink text-white shadow-sm"
-                  : "text-text-muted hover:text-text-primary"
-              }`}
-            >
-              Multi-Clip Montage
-            </button>
-          </div>
-
-          {/* Inspiration Link to News Ideas */}
-          <Link
-            href="/ideas"
-            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">💡 News Ideas</span>
-          </Link>
-
-          {/* Reset button */}
           <button
-            onClick={() => {
-              resetDraft();
-              toast.info("Draft reset to fresh state.");
-            }}
-            className="p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-elevated border border-transparent hover:border-border transition-colors"
-            title="Reset Draft"
+            onClick={() => setShowAdvancedModal(true)}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            title="Advanced Settings"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <Settings2 className="w-4 h-4" />
           </button>
         </div>
-      </div>
 
-      {/* --------------------------------------------------------------------- */}
-      {/* 2-COLUMN LAYOUT: 60% Left (Input/Content) / 40% Right (Phone Preview) */}
-      {/* --------------------------------------------------------------------- */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-        {/* =================================================================== */}
-        {/* LEFT COLUMN (60%): Wizard Step 1 & Step 2                           */}
-        {/* =================================================================== */}
-        <div className="w-full lg:w-[60%] flex-1 flex flex-col overflow-y-auto p-6 space-y-6 border-r border-border">
-          {/* STEP 1: Enter Raw News */}
-          <div className="p-6 rounded-3xl bg-bg-surface border border-border space-y-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-brand-pink/15 text-brand-pink border border-brand-pink/30 flex items-center justify-center font-black text-xs">
-                  1
-                </span>
-                <h2 className="text-base font-extrabold text-text-primary font-outfit">
-                  Enter Raw News / Details
-                </h2>
-              </div>
-              <span className="text-[11px] font-bold text-text-muted">
-                AI ગુજરાતી સ્ક્રિપ્ટ અને હેડલાઇન્સ બનાવશે
-              </span>
+        {/* Scrollable Controls Body */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+          {/* 1. Category & Area (Compact Dropdowns) */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-600">Category</label>
+              <select
+                value={draft.categoryCode}
+                onChange={(e) => updateDraft({ categoryCode: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E5E7EB] text-slate-800 text-xs font-medium focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+              >
+                {categories.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.emoji || "📰"} {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-600">Area</label>
+              <select
+                value={draft.area}
+                onChange={(e) => updateDraft({ area: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E5E7EB] text-slate-800 text-xs font-medium focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+              >
+                {areas.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* 2. News Input (Minimal Textarea) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-slate-700">News Details</label>
+              <span className="text-[10px] text-slate-400">Gujarati input supported</span>
+            </div>
             <textarea
               value={draft.rawDetails}
               onChange={(e) => updateDraft({ rawDetails: e.target.value })}
               rows={3}
-              placeholder="અહીં સમાચારની વિગત લખો અથવા પેસ્ટ કરો (જેમ કે: સુરત મેટ્રો ફેઝ-૨ અડાજણથી સરથાણા લાઇન પર કામ પૂર્ણ થયું છે, 10 નવા સ્ટેશનો શરૂ થશે...)..."
-              className="w-full p-4 rounded-2xl bg-bg-elevated border border-border text-sm text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-brand-pink leading-relaxed resize-none"
+              placeholder="સમાચારની વિગતો અહીં લખો (જેમ કે: અડાજણમાં નવો ફ્લાયઓવર શરૂ થયો...)"
+              className="w-full p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-gujarati leading-relaxed resize-none shadow-2xs"
             />
-
-            {/* Step 1 Gradient Action Button */}
-            <button
-              onClick={handleStep1GenerateScript}
-              disabled={isGeneratingScript || !draft.rawDetails.trim()}
-              className="w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm text-white bg-gradient-to-r from-brand-pink via-pink-600 to-rose-600 hover:from-brand-pink/90 hover:to-rose-600/90 shadow-lg shadow-brand-pink/20 hover:shadow-brand-pink/30 flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {isGeneratingScript ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>AI સ્ક્રિપ્ટ અને હેડલાઇન્સ બનાવી રહ્યું છે...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 fill-current" />
-                  <span>✨ 1. Generate Script & Headlines (સ્ક્રિપ્ટ બનાવો)</span>
-                </>
-              )}
-            </button>
           </div>
 
-          {/* PREVIEW CARDS (Editable): Headlines, Script, Audio, Caption */}
-          {(draft.line1Headline || draft.voiceoverScript) && (
-            <div className="space-y-4">
-              {/* Headline Badges Card */}
-              <div className="p-5 rounded-3xl bg-bg-surface border border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-extrabold text-text-muted uppercase tracking-wider flex items-center gap-2">
-                    <Type className="w-3.5 h-3.5 text-brand-pink" />
-                    <span>ડ્યુઅલ-સ્ટ્રાઈપ હેડલાઇન બેજ (Line 1 & 2)</span>
-                  </h3>
-                  <span className="text-[10px] text-text-muted">Editable preview</span>
-                </div>
+          {/* 3. Voice & Video Mode */}
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-600">Voice Persona</label>
+              <select
+                value={draft.selectedVoiceMode}
+                onChange={(e) => updateDraft({ selectedVoiceMode: e.target.value })}
+                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-[#E5E7EB] text-slate-800 text-xs font-medium focus:border-indigo-500 focus:outline-none shadow-2xs"
+              >
+                <option value="PRARAMBH_MALE">🎙️ Prarambh Male (Natural Gujarati)</option>
+                <option value="PRARAMBH_FEMALE">🎙️ Prarambh Female (Expressive Gujarati)</option>
+              </select>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Line 1 (Red Badge) */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-red-400">Line 1 (લાલ પટ્ટી / Red Stripe):</label>
-                    <input
-                      type="text"
-                      value={draft.line1Headline}
-                      onChange={(e) => updateDraft({ line1Headline: e.target.value })}
-                      placeholder="સુરત ન્યૂઝ અપડેટ"
-                      className="w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border text-xs font-bold text-text-primary font-gujarati focus:outline-none focus:border-red-500"
-                    />
-                  </div>
-
-                  {/* Line 2 (Blue Badge) */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-blue-400">Line 2 (વાદળી પટ્ટી / Blue Stripe):</label>
-                    <input
-                      type="text"
-                      value={draft.line2Headline}
-                      onChange={(e) => updateDraft({ line2Headline: e.target.value })}
-                      placeholder="મુખ્ય સમાચાર અને હૂક"
-                      className="w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border text-xs font-bold text-text-primary font-gujarati focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Gujarati Voiceover Script Card with User Review & Dedicated Voice Button */}
-              <div className="p-5 rounded-3xl bg-bg-surface border border-border space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-brand-cyan" />
-                    <h3 className="text-xs font-extrabold text-text-primary uppercase tracking-wider">
-                      ગુજરાતી વોઇસઓવર સ્ક્રિપ્ટ (Voiceover Script)
-                    </h3>
-                  </div>
-
-                  {/* Word count & Reading time indicator */}
-                  <div className="flex items-center gap-2 text-[10px] text-text-muted font-medium">
-                    <span className="px-2 py-0.5 rounded-md bg-bg-elevated border border-border">
-                      {draft.voiceoverScript.trim() ? draft.voiceoverScript.trim().split(/\s+/).length : 0} શબ્દો
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20 font-bold">
-                      ~{Math.max(5, Math.round((draft.voiceoverScript.trim() ? draft.voiceoverScript.trim().split(/\s+/).length : 0) / 2.5))} સેકન્ડ
-                    </span>
-                  </div>
-                </div>
-
-                {/* Review Prompt Banner */}
-                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5">
-                  <BookOpen className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                  <div className="text-[11px] leading-relaxed text-amber-200/90">
-                    <span className="font-bold text-amber-300">સ્ક્રિપ્ટ એકવાર વાંચી લો: </span>
-                    જો કોઈ શબ્દ કે સંખ્યા સુધારવી હોય તો નીચે સીધો ફેરફાર કરી શકો છો. સ્ક્રિપ્ટ ઓકે લાગે પછી નીચે આપેલા 
-                    <span className="font-bold text-white"> &apos;🎙️ અવાજ જનરેટ કરો&apos;</span> બટન પર ક્લિક કરો.
-                  </div>
-                </div>
-
-                {/* Script Editable Textarea */}
-                <textarea
-                  value={draft.voiceoverScript}
-                  onChange={(e) => updateDraft({ voiceoverScript: e.target.value })}
-                  rows={4}
-                  placeholder="AI દ્વારા જનરેટ થયેલી સ્ક્રિપ્ટ અહીં દેખાશે, અથવા તમારી પોતાની સ્ક્રિપ્ટ લખો..."
-                  className="w-full p-4 rounded-2xl bg-bg-elevated border border-border text-sm font-gujarati text-text-primary leading-relaxed resize-none focus:outline-none focus:border-brand-cyan shadow-inner"
-                />
-
-                {/* DEDICATED VOICE GENERATION SECTION */}
-                {!draft.voiceoverAudioUrl ? (
-                  <div className="pt-1">
-                    <button
-                      onClick={handleGenerateVoice}
-                      disabled={isGeneratingVoice || !draft.voiceoverScript.trim()}
-                      className="w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm text-white bg-gradient-to-r from-teal-500 via-brand-cyan to-blue-600 hover:from-teal-400 hover:to-blue-500 shadow-lg shadow-brand-cyan/25 hover:shadow-brand-cyan/35 flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      {isGeneratingVoice ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>ElevenLabs Multilingual v2 દ્વારા અવાજ જનરેટ થઈ રહ્યો છે...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="w-4 h-4 text-white fill-current" />
-                          <span>🎙️ અવાજ જનરેટ કરો (Generate Voiceover)</span>
-                        </>
-                      )}
-                    </button>
-                    <p className="text-center text-[10px] text-text-muted mt-2">
-                      👆 સ્ક્રિપ્ટ ચકાસ્યા પછી આ બટન દબાવો — ElevenLabs ની હાઈ-ક્વોલિટી નેચરલ ગુજરાતી અવાજમાં ઓડિયો તૈયાર થશે.
-                    </p>
-                  </div>
-                ) : (
-                  /* Audio Ready Player Card */
-                  <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-bg-elevated to-brand-cyan/10 border border-emerald-500/30 space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>ElevenLabs અવાજ તૈયાર છે (Audio Ready)</span>
-                      </div>
-                      <button
-                        onClick={handleGenerateVoice}
-                        disabled={isGeneratingVoice || !draft.voiceoverScript.trim()}
-                        className="text-[11px] font-bold text-brand-cyan hover:underline flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-surface border border-border hover:border-brand-cyan/50 transition-colors"
-                        title="સ્ક્રિપ્ટમાં ફેરફાર કર્યો હોય તો ફરી અવાજ રેકોર્ડ કરો"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isGeneratingVoice ? "animate-spin" : ""}`} />
-                        <span>{isGeneratingVoice ? "બની રહ્યો છે..." : "ફરી અવાજ બનાવો (Re-generate)"}</span>
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <audio
-                        src={draft.voiceoverAudioUrl}
-                        controls
-                        className="w-full h-9 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Instagram Caption & Hashtags (Collapsible) */}
-              <div className="rounded-3xl bg-bg-surface border border-border overflow-hidden">
+            {/* Segmented Pill Toggle: Single Video vs Auto Montage */}
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-600">Video Layout</label>
+              <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-lg border border-[#E5E7EB]">
                 <button
-                  onClick={() => setShowCaptionCard(!showCaptionCard)}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors"
+                  type="button"
+                  onClick={() => updateDraft({ videoMode: "single" })}
+                  className={`py-1 rounded-md text-[11px] font-semibold transition-all ${
+                    draft.videoMode === "single"
+                      ? "bg-white text-indigo-600 shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
-                  <span className="text-xs font-extrabold text-text-muted uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="w-3.5 h-3.5 text-brand-pink" />
-                    <span>Instagram Caption & Hashtags</span>
-                  </span>
-                  {showCaptionCard ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
+                  Single Video
                 </button>
-
-                {showCaptionCard && (
-                  <div className="p-4 pt-0 border-t border-border/60">
-                    <textarea
-                      value={draft.caption}
-                      onChange={(e) => updateDraft({ caption: e.target.value })}
-                      rows={4}
-                      className="w-full p-3 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary leading-relaxed resize-none focus:outline-none focus:border-brand-pink mt-3"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Video Media Ingest */}
-          <div className="p-6 rounded-3xl bg-bg-surface border border-border space-y-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-xl bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 flex items-center justify-center font-black text-xs">
-                  2
-                </span>
-                <h2 className="text-base font-extrabold text-text-primary font-outfit">
-                  Video Media Ingest
-                </h2>
-              </div>
-              <span className="text-[11px] font-bold text-text-muted">
-                {draft.videoMode === "single" ? "સિંગલ વિડિયો ક્લિપ" : "મલ્ટીપલ ક્લિપ્સ મોન્ટાજ"}
-              </span>
-            </div>
-
-            {/* Drag & Drop Area */}
-            <div
-              {...getRootProps()}
-              className={`p-6 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center cursor-pointer ${
-                isDragActive
-                  ? "border-brand-pink bg-brand-pink/10"
-                  : "border-border hover:border-brand-pink/50 bg-bg-elevated/50 hover:bg-bg-elevated"
-              }`}
-            >
-              <input {...getInputProps()} />
-              <UploadCloud className="w-8 h-8 text-brand-pink mb-2 opacity-80" />
-              <p className="text-xs font-bold text-text-primary">
-                {isUploadingClip ? "Uploading video..." : "Drag & Drop video clip here, or click to browse"}
-              </p>
-              <p className="text-[10px] text-text-muted mt-1">
-                9:16 Vertical Video Recommended (MP4, MOV, WebM)
-              </p>
-            </div>
-
-            {/* Clip Status */}
-            {(draft.uploadedSingleClip || draft.uploadedMultiClips.length > 0) && (
-              <div className="p-3 rounded-2xl bg-accent-success/10 border border-accent-success/30 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-accent-success">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>
-                    {draft.videoMode === "single"
-                      ? `Selected: ${draft.uploadedSingleClip}`
-                      : `${draft.uploadedMultiClips.length} clips uploaded for montage`}
-                  </span>
-                </div>
                 <button
-                  onClick={() => updateDraft({ uploadedSingleClip: null, uploadedMultiClips: [] })}
-                  className="p-1 text-text-muted hover:text-red-400 transition-colors"
-                  title="Remove Clip"
+                  type="button"
+                  onClick={() => updateDraft({ videoMode: "multi" })}
+                  className={`py-1 rounded-md text-[11px] font-semibold transition-all ${
+                    draft.videoMode === "multi"
+                      ? "bg-white text-indigo-600 shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  Auto Montage
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Primary Action Button: Soft Canva Purple */}
+          <button
+            onClick={handleStep1GenerateScript}
+            disabled={isGeneratingScript || !draft.rawDetails.trim()}
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isGeneratingScript ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>AI Generating Script...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>✨ Generate Script & Audio</span>
+              </>
+            )}
+          </button>
+
+          {/* Headline Preview Card (Dual Stripes) */}
+          <div className="p-3 rounded-xl bg-slate-50/80 border border-[#E5E7EB] space-y-2">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              Headline Stripes (Live Preview)
+            </span>
+            <div className="space-y-1.5">
+              <input
+                type="text"
+                value={draft.line1Headline}
+                onChange={(e) => updateDraft({ line1Headline: e.target.value })}
+                placeholder="Line 1: સુરત ન્યૂઝ અપડેટ"
+                className="w-full px-2.5 py-1 rounded-lg bg-white border border-[#E5E7EB] text-[11px] font-bold font-gujarati text-slate-800 focus:outline-none focus:border-red-400"
+              />
+              <input
+                type="text"
+                value={draft.line2Headline}
+                onChange={(e) => updateDraft({ line2Headline: e.target.value })}
+                placeholder="Line 2: મુખ્ય સમાચાર"
+                className="w-full px-2.5 py-1 rounded-lg bg-white border border-[#E5E7EB] text-[11px] font-bold font-gujarati text-slate-800 focus:outline-none focus:border-blue-400"
+              />
+            </div>
+          </div>
+
+          {/* Gujarati Voiceover Script Card */}
+          <div className="p-3 rounded-xl bg-slate-50/80 border border-[#E5E7EB] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Volume2 className="w-3 h-3 text-indigo-600" />
+                Gujarati Script
+              </span>
+              <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                <span>{draft.voiceoverScript ? draft.voiceoverScript.split(/\s+/).filter(Boolean).length : 0} w</span>
+                <span>•</span>
+                <span>~{Math.max(5, Math.round((draft.voiceoverScript ? draft.voiceoverScript.split(/\s+/).filter(Boolean).length : 0) / 2.5))}s</span>
+              </div>
+            </div>
+
+            <textarea
+              ref={scriptTextareaRef}
+              value={draft.voiceoverScript}
+              onChange={(e) => updateDraft({ voiceoverScript: e.target.value })}
+              rows={3}
+              placeholder="Script with tags [excited], [pauses]..."
+              className="w-full p-2.5 rounded-lg bg-white border border-[#E5E7EB] text-[11px] font-gujarati text-slate-800 focus:outline-none focus:border-indigo-500 resize-none shadow-2xs leading-relaxed"
+            />
+
+            {/* Gemini Auto-Tag Action & Clear Button */}
+            <div className="flex items-center justify-between gap-1.5">
+              <button
+                type="button"
+                onClick={handleAutoTagScript}
+                disabled={isAutoTagging || !draft.voiceoverScript.trim()}
+                className="flex-1 py-1.5 px-2.5 rounded-lg text-[10px] font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60 transition-colors flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
+                title="Gemini will intelligently insert [excited], [pauses], etc."
+              >
+                {isAutoTagging ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Tagging...</span>
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-3 h-3" />
+                    <span>✨ Gemini Auto-Tag</span>
+                  </>
+                )}
+              </button>
+
+              {draft.voiceoverScript && draft.voiceoverScript.match(/\[[a-zA-Z_ ]+\]/) && (
+                <button
+                  type="button"
+                  onClick={handleStripTags}
+                  className="py-1.5 px-2 rounded-lg text-[10px] text-slate-500 hover:text-slate-800 bg-white border border-[#E5E7EB] transition-colors"
+                  title="Remove tags back to plain script"
+                >
+                  Clear Tags
+                </button>
+              )}
+            </div>
+
+            {/* Audio Synthesis / Status Card */}
+            {!draft.voiceoverAudioUrl ? (
+              <button
+                onClick={handleGenerateVoice}
+                disabled={isGeneratingVoice || !draft.voiceoverScript.trim()}
+                className="w-full py-2 px-3 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                {isGeneratingVoice ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Generating Voice...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-3.5 h-3.5" />
+                    <span>🎙️ Generate Voiceover</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between text-[11px] text-emerald-800">
+                <span className="flex items-center gap-1 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Voiceover Audio Ready
+                </span>
+                <button
+                  onClick={handleGenerateVoice}
+                  disabled={isGeneratingVoice}
+                  className="text-indigo-600 hover:underline font-semibold"
+                >
+                  Re-voice
                 </button>
               </div>
             )}
+          </div>
 
-            {/* Stock B-roll Fallback Selector */}
-            {brollAssets.length > 0 && !draft.uploadedSingleClip && draft.uploadedMultiClips.length === 0 && (
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-text-muted">અથવા સ્ટોક B-Roll પસંદ કરો (Or use Stock B-Roll):</label>
-                <select
-                  value={draft.selectedStockBroll || ""}
-                  onChange={(e) => updateDraft({ selectedStockBroll: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary font-medium focus:outline-none focus:border-brand-pink"
+          {/* Video Media Upload Dropzone */}
+          <div
+            {...getRootProps()}
+            className={`p-3 rounded-xl border border-dashed transition-all flex flex-col items-center justify-center text-center cursor-pointer ${
+              isDragActive
+                ? "border-indigo-500 bg-indigo-50/50"
+                : "border-[#E5E7EB] hover:border-slate-400 bg-slate-50/50"
+            }`}
+          >
+            <input {...getInputProps()} />
+            <UploadCloud className="w-5 h-5 text-slate-400 mb-1" />
+            <span className="text-[11px] font-semibold text-slate-700">
+              {draft.uploadedSingleClip || draft.uploadedMultiClips.length > 0
+                ? "Click or drop to replace video clip"
+                : "Drop 9:16 Video Clip here"}
+            </span>
+            <span className="text-[10px] text-slate-400">MP4, MOV supported</span>
+          </div>
+
+          {/* Secondary Action: Render Final Reel */}
+          <button
+            onClick={handleStep2Render}
+            disabled={isRenderingVideo || (!draft.voiceoverAudioUrl && !draft.voiceoverFilename)}
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.98] transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isRenderingVideo ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Rendering 9:16 Reel...</span>
+              </>
+            ) : (
+              <>
+                <Film className="w-3.5 h-3.5" />
+                <span>🎬 Render Video</span>
+              </>
+            )}
+          </button>
+        </div>
+      </aside>
+
+      {/* ===================================================================== */}
+      {/* ZONE C: Center Stage (The Canvas)                                     */}
+      {/* ===================================================================== */}
+      <main className="flex-1 flex flex-col h-full bg-[#F3F4F6] relative overflow-hidden">
+        {/* Floating Top Toolbar */}
+        <div className="h-12 px-6 bg-white border-b border-[#E5E7EB] flex items-center justify-between z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Zoom Selector */}
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              {(["fit", "75", "100"] as const).map((z) => (
+                <button
+                  key={z}
+                  onClick={() => setZoomLevel(z)}
+                  className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all ${
+                    zoomLevel === z ? "bg-white text-slate-900 shadow-2xs font-semibold" : "text-slate-500 hover:text-slate-800"
+                  }`}
                 >
-                  <option value="">સિલેક્ટ કરો (Default Stock Clips)...</option>
-                  {brollAssets.map((b) => (
-                    <option key={b.name} value={b.name}>
-                      {b.name} ({b.size_mb} MB)
-                    </option>
+                  {z === "fit" ? "Fit" : `${z}%`}
+                </button>
+              ))}
+            </div>
+
+            <div className="h-4 w-[1px] bg-slate-200" />
+
+            {/* Safe Zone Toggle */}
+            <button
+              onClick={() => setShowSafeZone(!showSafeZone)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors border ${
+                showSafeZone
+                  ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+              title="Toggle Instagram 9:16 safe zone overlays"
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Safe Zones: {showSafeZone ? "ON" : "OFF"}</span>
+            </button>
+          </div>
+
+          {/* Top Right: Publish to Instagram Action */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPublishModal(true)}
+              disabled={!isReelReadyToPublish}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>🚀 Publish to Instagram</span>
+            </button>
+          </div>
+        </div>
+
+        {/* The Canvas Work Area */}
+        <div className="flex-1 flex items-center justify-center p-6 overflow-hidden relative">
+          {/* Vertical 9:16 Mobile Canvas Mockup (Clean Canva Bezel) */}
+          <div 
+            className={`relative rounded-[28px] bg-white p-2.5 shadow-xl shadow-slate-200/80 border border-slate-200 flex flex-col transition-all duration-200 ${
+              zoomLevel === "100" 
+                ? "w-[340px] h-[604px]" 
+                : zoomLevel === "75" 
+                ? "w-[270px] h-[480px]" 
+                : "w-[300px] h-[533px]"
+            }`}
+          >
+            {/* Viewport Screen */}
+            <div className="relative w-full h-full rounded-[20px] overflow-hidden bg-slate-950 flex flex-col justify-between select-none">
+              {/* Video Element */}
+              {draft.renderedVideoUrl ? (
+                <video
+                  ref={videoPlayerRef}
+                  src={draft.renderedVideoUrl}
+                  loop
+                  playsInline
+                  onTimeUpdate={handleTimeUpdate}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-900 to-black flex items-center justify-center">
+                  <div className="text-center p-4">
+                    <Film className="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-50" />
+                    <span className="text-[11px] text-slate-400 font-medium">9:16 Canvas Preview</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Overlays (Rendered live if no final video yet) */}
+              {!draft.renderedVideoUrl && (
+                <>
+                  {/* Top Live Headline Stripe Overlays */}
+                  <div className="relative z-10 mt-6 px-3 flex flex-col items-center gap-1.5">
+                    <div 
+                      className="px-3 py-1 rounded-lg text-white font-extrabold font-gujarati text-[11px] text-center shadow-md max-w-[95%]"
+                      style={{ backgroundColor: profile.line1_bg || "#FF0033" }}
+                    >
+                      {draft.line1Headline || "સુરત ન્યૂઝ અપડેટ"}
+                    </div>
+                    <div 
+                      className="px-3 py-1 rounded-lg text-white font-extrabold font-gujarati text-[11px] text-center shadow-md max-w-[95%]"
+                      style={{ backgroundColor: profile.line2_bg || "#0080FF" }}
+                    >
+                      {draft.line2Headline || "મુખ્ય સમાચાર"}
+                    </div>
+                  </div>
+
+                  {/* Subtitle Pill Overlay */}
+                  <div className="relative z-10 pb-5 px-3 mt-auto text-center">
+                    <div className="inline-block px-2.5 py-1 rounded-md bg-black/75 border border-white/10 text-[10px] font-gujarati font-bold text-yellow-300 shadow-sm max-w-[90%]">
+                      {draft.voiceoverScript 
+                        ? draft.voiceoverScript.replace(/\[[a-zA-Z_ ]+\]/g, "").slice(0, 45) + "..." 
+                        : "સુરતના તાજા સમાચાર..."}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Safe Zone Overlays (Instagram Reel UI bounds) */}
+              {showSafeZone && (
+                <div className="absolute inset-0 pointer-events-none z-20 flex flex-col justify-between p-2">
+                  <div className="h-10 border-b border-dashed border-red-400/40 flex items-end justify-center">
+                    <span className="text-[8px] font-semibold text-red-300 uppercase tracking-widest bg-black/40 px-1 rounded">Top UI Zone</span>
+                  </div>
+                  <div className="h-14 border-t border-dashed border-red-400/40 flex items-start justify-center pt-1">
+                    <span className="text-[8px] font-semibold text-red-300 uppercase tracking-widest bg-black/40 px-1 rounded">Caption Zone</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Track: Minimal Timeline Scrubber */}
+        <div className="h-14 px-6 bg-white border-t border-[#E5E7EB] flex items-center justify-between gap-4 z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={togglePlay}
+              className="w-8 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition-colors shadow-xs"
+              title={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+            </button>
+            <span className="text-xs font-mono text-slate-600">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </div>
+
+          {/* Audio Waveform Visualization Simulation & Range Scrubber */}
+          <div className="flex-1 flex items-center gap-2 max-w-md">
+            <div className="flex items-center gap-0.5 h-4 opacity-50">
+              {[40, 70, 90, 60, 30, 80, 100, 50, 75, 45, 95, 65, 35, 85, 55].map((h, i) => (
+                <div
+                  key={i}
+                  className="w-1 bg-indigo-500 rounded-full"
+                  style={{ height: `${h}%` }}
+                />
+              ))}
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={duration || 30}
+              step={0.1}
+              value={currentTime}
+              onChange={handleSeek}
+              className="w-full accent-indigo-600 h-1 bg-slate-200 rounded-lg cursor-pointer"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-medium">
+              1080 × 1920 (9:16)
+            </span>
+          </div>
+        </div>
+      </main>
+
+      {/* ===================================================================== */}
+      {/* MODAL: Advanced Settings & Tuning                                     */}
+      {/* ===================================================================== */}
+      {showAdvancedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Settings2 className="w-4 h-4 text-indigo-600" />
+                Advanced Settings
+              </h3>
+              <button 
+                onClick={() => setShowAdvancedModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Subtitle Font Size ({draft.subtitleFontSize || 28}px)</label>
+                <input
+                  type="range"
+                  min={20}
+                  max={44}
+                  value={draft.subtitleFontSize || 28}
+                  onChange={(e) => updateDraft({ subtitleFontSize: Number(e.target.value) })}
+                  className="w-full accent-indigo-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Voice Speed ({draft.voiceSettings?.speed || 1.0}x)</label>
+                <input
+                  type="range"
+                  min={0.8}
+                  max={1.3}
+                  step={0.05}
+                  value={draft.voiceSettings?.speed || 1.0}
+                  onChange={(e) => updateDraft({ voiceSettings: { ...draft.voiceSettings, speed: Number(e.target.value) } })}
+                  className="w-full accent-indigo-600"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Background Music Track</label>
+                <select
+                  value={draft.selectedBgm || ""}
+                  onChange={(e) => updateDraft({ selectedBgm: e.target.value })}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-800 text-xs"
+                >
+                  <option value="">Default Breaking News Theme</option>
+                  {bgmAssets.map((b) => (
+                    <option key={b.name} value={b.name}>{b.name}</option>
                   ))}
                 </select>
               </div>
-            )}
-
-            {/* Step 2 Gradient Action Button */}
-            <button
-              onClick={handleStep2Render}
-              disabled={isRenderingVideo || (!draft.voiceoverAudioUrl && !draft.voiceoverFilename)}
-              className="w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-brand-cyan hover:from-blue-500 hover:to-brand-cyan shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 flex items-center justify-center gap-2.5 transition-all active:scale-[0.99] disabled:opacity-50"
-            >
-              {isRenderingVideo ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>🎬 9:16 રીલ રેન્ડર થઈ રહી છે... (Timeline + Headlines)</span>
-                </>
-              ) : (
-                <>
-                  <Film className="w-4 h-4" />
-                  <span>🎬 2. Render Final Reel</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* COLLAPSIBLE DRAWER: Advanced Tuning */}
-          <div className="rounded-3xl bg-bg-surface border border-border overflow-hidden">
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-bg-elevated/40 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-brand-pink" />
-                <span className="text-xs font-extrabold text-text-primary">
-                  🛠️ Advanced Tuning (Optional)
-                </span>
-                <span className="text-[10px] text-text-muted">
-                  Subtitle Styling, Audio Pacing & Music
-                </span>
-              </div>
-              {showAdvanced ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
-            </button>
-
-            {showAdvanced && (
-              <div className="p-5 pt-0 border-t border-border/60 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3">
-                  {/* Subtitle Font Size */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold text-text-muted">
-                      <span>Subtitle Font Size:</span>
-                      <span>{draft.subtitleFontSize || 28}px</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={20}
-                      max={44}
-                      value={draft.subtitleFontSize || 28}
-                      onChange={(e) => updateDraft({ subtitleFontSize: Number(e.target.value) })}
-                      className="w-full accent-brand-pink"
-                    />
-                  </div>
-
-                  {/* Audio Pacing (Speed) */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[11px] font-bold text-text-muted">
-                      <span>Voice Speed (Pacing):</span>
-                      <span>{draft.voiceSettings?.speed || 1.0}x</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0.8}
-                      max={1.3}
-                      step={0.05}
-                      value={draft.voiceSettings?.speed || 1.0}
-                      onChange={(e) =>
-                        updateDraft({
-                          voiceSettings: {
-                            ...draft.voiceSettings,
-                            speed: Number(e.target.value),
-                          },
-                        })
-                      }
-                      className="w-full accent-brand-cyan"
-                    />
-                  </div>
-
-                  {/* Background Music */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-text-muted">Background Music:</label>
-                    <select
-                      value={draft.selectedBgm || ""}
-                      onChange={(e) => updateDraft({ selectedBgm: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-bg-elevated border border-border text-xs text-text-primary"
-                    >
-                      <option value="">Default Breaking News Theme</option>
-                      {bgmAssets.map((b) => (
-                        <option key={b.name} value={b.name}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Subtitle Highlight Color */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-text-muted">Subtitle Highlight Color:</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={draft.subtitleHighlightColor || "#FFD700"}
-                        onChange={(e) => updateDraft({ subtitleHighlightColor: e.target.value })}
-                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
-                      />
-                      <span className="text-xs font-mono text-text-primary">
-                        {draft.subtitleHighlightColor || "#FFD700"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* =================================================================== */}
-        {/* RIGHT COLUMN (40%): Phone Mockup & Step 3 Publish                   */}
-        {/* =================================================================== */}
-        <div className="w-full lg:w-[40%] flex flex-col items-center justify-between p-6 bg-bg-elevated/30 overflow-y-auto space-y-6">
-          {/* Centered Realistic 9:16 Phone Mockup */}
-          <div className="flex-1 flex items-center justify-center w-full min-h-[500px]">
-            <div className="relative w-[280px] h-[560px] rounded-[44px] bg-[#0A0A10] p-3 shadow-[0_0_0_8px_#1A1A24,0_20px_50px_rgba(0,0,0,0.8)] ring-1 ring-white/10 overflow-hidden flex flex-col">
-              {/* Screen Inner Viewport (9:16 aspect) */}
-              <div className="relative w-full h-full rounded-[34px] overflow-hidden bg-slate-950 flex flex-col justify-between select-none">
-                {/* Simulated or Rendered Video */}
-                {draft.renderedVideoUrl ? (
-                  <div className="absolute inset-0 z-0 bg-black flex items-center justify-center overflow-hidden">
-                    <video
-                      ref={phoneVideoRef}
-                      src={draft.renderedVideoUrl}
-                      autoPlay
-                      loop
-                      muted={isMutedPhoneVideo}
-                      playsInline
-                      className="w-full h-full object-cover"
-                    />
-
-                    {/* Play/Pause Center Overlay */}
-                    <button
-                      onClick={togglePlayPhoneVideo}
-                      className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors group"
-                    >
-                      <div className="w-12 h-12 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                        {isPlayingPhoneVideo ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-                      </div>
-                    </button>
-                  </div>
-                ) : (
-                  /* Live Pre-Render Simulated Visual Layer */
-                  <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-900 via-blue-950/80 to-slate-950 overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-900/40 via-transparent to-black/80" />
-                    <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:20px_20px]" />
-                    <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black via-black/60 to-transparent" />
-                  </div>
-                )}
-
-                {/* iPhone Notch / Dynamic Island */}
-                <div className="absolute top-2.5 inset-x-0 z-30 flex justify-center pointer-events-none">
-                  <div className="w-20 h-4 bg-black rounded-full shadow-inner flex items-center justify-end px-2">
-                    <div className="w-2 h-2 rounded-full bg-[#0d233a]/80" />
-                  </div>
-                </div>
-
-                {/* Overlays (Only active in pre-render simulation mode) */}
-                {!draft.renderedVideoUrl && (
-                  <>
-                    {/* Top Ticker Bar */}
-                    <div className="relative z-10 mt-7 px-3 py-1 bg-gradient-to-r from-brand-pink via-red-600 to-brand-pink text-white flex items-center justify-between shadow-md">
-                      <span className="text-[8px] font-extrabold tracking-wider font-outfit uppercase">
-                        SURAT UPDATE | {draft.categoryCode || "N01"}
-                      </span>
-                      <span className="text-[7px] font-bold opacity-80">{draft.area || "All Surat"}</span>
-                    </div>
-
-                    {/* Dual-Stripe Headline Badges Preview */}
-                    <div className="relative z-20 flex flex-col items-center gap-1.5 px-3 mt-12">
-                      <div
-                        className="px-3.5 py-1.5 rounded-xl font-extrabold font-gujarati text-[12px] shadow-xl text-center leading-tight max-w-[94%] border border-white/10"
-                        style={{
-                          backgroundColor: profile.line1_bg || "#FF0033",
-                          color: profile.line1_text || "#FFFFFF",
-                        }}
-                      >
-                        {draft.line1Headline || "સુરત ન્યૂઝ અપડેટ"}
-                      </div>
-                      <div
-                        className="px-3.5 py-1.5 rounded-xl font-extrabold font-gujarati text-[12px] shadow-xl text-center leading-tight max-w-[94%] border border-white/10"
-                        style={{
-                          backgroundColor: profile.line2_bg || "#0080FF",
-                          color: profile.line2_text || "#FFFFFF",
-                        }}
-                      >
-                        {draft.line2Headline || "તાજા સમાચાર અને વિગતો"}
-                      </div>
-                    </div>
-
-                    {/* Subtitle preview banner */}
-                    <div className="relative z-10 pb-4 px-3 space-y-2 mt-auto">
-                      <div className="text-center px-2 py-1 rounded-lg bg-black/60 border border-white/10 text-[11px] font-gujarati font-bold text-yellow-300">
-                        {draft.voiceoverScript ? draft.voiceoverScript.slice(0, 50) + "..." : "સુરતના તાજા સમાચાર..."}
-                      </div>
-
-                      {/* Instagram Simulated Bottom Chrome */}
-                      <div className="space-y-1 text-white/90">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-4 h-4 rounded-full bg-brand-pink flex items-center justify-center text-[7px] font-bold">
-                            P
-                          </div>
-                          <span className="text-[9px] font-bold font-outfit">surat.prarambh.news</span>
-                        </div>
-                        <p className="text-[8px] text-white/80 line-clamp-1">
-                          {draft.caption ? draft.caption.split("\n")[0] : "સુરતના સમાચારો માટે ફોલો કરો"}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Publishing Controls Area */}
-          <div className="w-full max-w-[340px] space-y-3">
-            {/* Status Pill Badge */}
-            <div className="flex justify-center">
-              {isReelReadyToPublish ? (
-                <span className="px-4 py-1.5 rounded-full text-xs font-black bg-accent-success/20 text-accent-success border border-accent-success/40 flex items-center gap-2 shadow-sm animate-pulse">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Ready to Publish</span>
-                </span>
-              ) : !draft.voiceoverScript.trim() ? (
-                <span className="px-4 py-1.5 rounded-full text-xs font-semibold bg-bg-surface text-text-muted border border-border flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-500" />
-                  <span>Awaiting Script (Step 1)</span>
-                </span>
-              ) : !draft.voiceoverAudioUrl ? (
-                <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span>સ્ક્રિપ્ટ તૈયાર — અવાજ જનરેટ કરો</span>
-                </span>
-              ) : (
-                <span className="px-4 py-1.5 rounded-full text-xs font-semibold bg-brand-cyan/15 text-brand-cyan border border-brand-cyan/30 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-brand-cyan" />
-                  <span>Awaiting Video Render (Step 2)</span>
-                </span>
-              )}
             </div>
 
-            {/* Big Vibrant Button: 🚀 3. Publish Reel to Instagram */}
-            <button
-              onClick={handleStep3Publish}
-              disabled={isPublishing || !isReelReadyToPublish}
-              className={`w-full py-4 px-6 rounded-2xl font-black text-sm text-white shadow-xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] ${
-                isReelReadyToPublish
-                  ? "bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 shadow-emerald-500/25 cursor-pointer animate-pulse"
-                  : "bg-bg-elevated text-text-muted border border-border cursor-not-allowed opacity-60"
-              }`}
-            >
-              {isPublishing ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Instagram પર અપલોડ થઈ રહી છે...</span>
-                </>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  <span>🚀 3. Publish Reel to Instagram</span>
-                </>
-              )}
-            </button>
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowAdvancedModal(false)}
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* MODAL: Publish to Instagram                                           */}
+      {/* ===================================================================== */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Send className="w-4 h-4 text-indigo-600" />
+                Publish to Instagram
+              </h3>
+              <button 
+                onClick={() => setShowPublishModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Instagram Caption & Hashtags</label>
+                <textarea
+                  value={draft.caption}
+                  onChange={(e) => updateDraft({ caption: e.target.value })}
+                  rows={5}
+                  className="w-full p-2.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 font-gujarati resize-none"
+                  placeholder="Caption..."
+                />
+              </div>
+
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
+                Connected Account: <strong className="text-slate-900">{profile.instagram_business_account_id ? "Active Connected" : "Local Test Mode"}</strong>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <button
+                onClick={() => setShowPublishModal(false)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 text-xs hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStep3Publish}
+                disabled={isPublishing}
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700 flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isPublishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                <span>Publish Reel Now</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
