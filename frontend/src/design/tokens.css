@@ -31,12 +31,12 @@
   }
 
   .dark {
-    --bg-base: #F8F9FA;
-    --bg-surface: #FFFFFF;
-    --bg-elevated: #F3F4F6;
-    --border: #E5E7EB;
-    --text-primary: #1F2937;
-    --text-muted: #6B7280;
+    --bg-base: #0B0F19;
+    --bg-surface: #111827;
+    --bg-elevated: #1F2937;
+    --border: #2D3748;
+    --text-primary: #F9FAFB;
+    --text-muted: #94A3B8;
   }
 
   body {
@@ -44,6 +44,79 @@
     color: var(--text-primary);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+}
+
+/* Seamless Dark Mode Styles */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0B0F19 !important;
+  color: #F9FAFB !important;
+}
+
+/* Background surfaces */
+html.dark .bg-white {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-\[\#F8F9FA\],
+html.dark .bg-\[\#F8F9FA\]\/30,
+html.dark .bg-\[\#F8F9FA\]\/40,
+html.dark .bg-\[\#F8F9FA\]\/60,
+html.dark .bg-\[\#F8F9FA\]\/70,
+html.dark .bg-\[\#F8F9FA\]\/80 {
+  background-color: #0B0F19 !important;
+}
+
+/* Borders */
+html.dark .border-\[\#E5E7EB\],
+html.dark .border-slate-200,
+html.dark .border-slate-100 {
+  border-color: #2D3748 !important;
+}
+
+/* Card and subtle backgrounds */
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
+  background-color: #1E293B !important;
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #2D3748 !important;
+}
+
+/* Typography */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-\[\#1F2937\] {
+  color: #F9FAFB !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #E2E8F0 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94A3B8 !important;
+}
+
+/* Form Inputs, Textareas, Selects */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1E293B !important;
+  color: #F9FAFB !important;
+  border-color: #374151 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
 }
 
 /* Custom Clean Scrollbars */
@@ -60,6 +133,23 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4B5563;
+}
+
+/* Glass Panel Dark Support */
+html.dark .glass-panel {
+  background: #111827 !important;
+  border-color: #2D3748 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Canva Clean Panel */

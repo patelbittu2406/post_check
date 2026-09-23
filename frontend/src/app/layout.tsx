@@ -64,8 +64,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="gu" className="light bg-[#F8F9FA]">
-      <body className={`${outfit.variable} ${inter.variable} ${gujarati.variable} ${anton.variable} ${bebas.variable} ${montserrat.variable} ${poppins.variable} font-inter bg-[#F8F9FA] text-[#1F2937] antialiased flex h-screen overflow-hidden`}>
+    <html lang="gu" className="light" suppressHydrationWarning>
+      <body className={`${outfit.variable} ${inter.variable} ${gujarati.variable} ${anton.variable} ${bebas.variable} ${montserrat.variable} ${poppins.variable} font-inter bg-bg-base text-text-primary antialiased flex h-screen overflow-hidden`}>
         <ClientInit />
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -78,16 +78,7 @@ export default function RootLayout({
         <Toaster 
           position="top-right" 
           richColors 
-          theme="light"
-          toastOptions={{
-            style: {
-              background: '#FFFFFF',
-              border: '1px solid #E5E7EB',
-              color: '#1F2937',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-            }
-          }}
+          closeButton
         />
       </body>
     </html>

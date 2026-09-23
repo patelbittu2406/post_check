@@ -32,7 +32,7 @@ export function Sidebar() {
       <div className="flex flex-col items-center gap-4 w-full">
         <Link 
           href="/dashboard" 
-          className="w-10 h-10 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center p-1.5 hover:border-indigo-300 hover:shadow-xs transition-all group"
+          className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 shadow-2xs flex items-center justify-center p-1.5 hover:border-indigo-300 hover:shadow-xs transition-all group"
           title="Prarambh Studio"
         >
           <img 
@@ -57,13 +57,13 @@ export function Sidebar() {
                 href={item.path}
                 className={`w-[58px] h-[54px] rounded-xl flex flex-col items-center justify-center transition-all duration-150 group cursor-pointer ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-600 font-semibold border border-indigo-100 shadow-2xs"
-                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80"
+                    ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 font-semibold border border-indigo-100 dark:border-indigo-800/80 shadow-2xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800"
                 }`}
                 title={item.name}
               >
-                <Icon className={`w-5 h-5 transition-transform group-hover:scale-105 ${isActive ? "text-indigo-600" : "text-slate-500 group-hover:text-slate-800"}`} />
-                <span className={`text-[10px] tracking-tight mt-1 leading-none ${isActive ? "font-semibold text-indigo-600" : "font-medium text-slate-500 group-hover:text-slate-800"}`}>
+                <Icon className={`w-5 h-5 transition-transform group-hover:scale-105 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"}`} />
+                <span className={`text-[10px] tracking-tight mt-1 leading-none ${isActive ? "font-semibold text-indigo-600 dark:text-indigo-400" : "font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200"}`}>
                   {item.name}
                 </span>
               </Link>
@@ -76,13 +76,13 @@ export function Sidebar() {
       <div className="flex flex-col items-center">
         <Link
           href="/settings/profile"
-          className="relative w-9 h-9 rounded-full bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 flex items-center justify-center text-slate-600 hover:text-indigo-600 transition-colors shadow-2xs group"
+          className="relative w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition-colors shadow-2xs group"
           title={profile.display_name || "Surat Anchor"}
         >
           <User className="w-4 h-4 group-hover:scale-105 transition-transform" />
           {/* Active online green dot */}
           <span 
-            className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"
+            className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900"
             title="Pipeline Active & Connected"
           />
         </Link>

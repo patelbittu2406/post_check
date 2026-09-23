@@ -65,6 +65,7 @@ export interface ReelDraft {
 
 interface AppState {
   theme: "dark" | "light";
+  setTheme: (theme: "dark" | "light") => void;
   toggleTheme: () => void;
   commandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
@@ -243,6 +244,14 @@ const DEFAULT_DRAFT: ReelDraft = {
 
 export const useStore = create<AppState>((set, get) => ({
   theme: "light",
+  setTheme: (theme: "dark" | "light") => {
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark", theme === "dark");
+      document.documentElement.classList.toggle("light", theme === "light");
+      localStorage.setItem("theme", theme);
+    }
+    set({ theme });
+  },
   toggleTheme: () => {
     const next = get().theme === "dark" ? "light" : "dark";
     if (typeof document !== "undefined") {

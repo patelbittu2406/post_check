@@ -4,15 +4,26 @@ import { useEffect } from "react";
 import { useStore } from "@/store/useStore";
 
 export function ClientInit() {
-  const { loadProfile } = useStore();
+  const { loadProfile, setTheme } = useStore();
 
   useEffect(() => {
     loadProfile();
-    // Enforce Canva light theme across entire app
-    localStorage.setItem("theme", "light");
-    document.documentElement.classList.remove("dark");
-    document.documentElement.classList.add("light");
-  }, [loadProfile]);
+    // Load saved theme preference (default to light)
+    try {
+      const savedTheme = (localStorage.getItem("theme") as "dark" | "light") || "light";
+      if (savedTheme === "dark") {
+        document.documentElement.classList.remove("light");
+        document.documentElement.classList.add("dark");
+        setTheme("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("light");
+        setTheme("light");
+      }
+    } catch (e) {
+      document.documentElement.classList.add("light");
+    }
+  }, [loadProfile, setTheme]);
 
   return null;
 }
