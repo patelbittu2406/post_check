@@ -43,6 +43,7 @@ from core.ig_analytics import InstagramAnalyticsEngine
 from core.ig_advisor import GeminiGrowthAdvisor
 from core.capcut_auto_editor import CapCutAutoEditor
 from core.surat_news_engine import surat_news_engine, SuratViralNewsItem
+from core.video_composer import VideoComposer
 
 
 app = FastAPI(
@@ -72,6 +73,7 @@ video_assembler = VideoAssembler()
 ig_publisher = InstagramPublisher()
 ig_analytics = InstagramAnalyticsEngine()
 growth_advisor = GeminiGrowthAdvisor()
+video_composer = VideoComposer()
 
 
 # -----------------------------------------------------------------------------
@@ -244,6 +246,49 @@ class CapCutPreviewSegmentRequest(BaseModel):
 
 class CapCutTimelineUpdateRequest(BaseModel):
     segments: List[Dict[str, Any]]
+
+
+class TimelineClipItem(BaseModel):
+    id: Optional[str] = None
+    name: Optional[str] = None
+    filename: Optional[str] = None
+    url: Optional[str] = None
+    sourceDuration: Optional[float] = 10.0
+    trim_start: Optional[float] = 0.0
+    trim_end: Optional[float] = 0.0
+    duration: Optional[float] = 4.0
+    transition_out: Optional[str] = "dissolve"
+    transition_duration: Optional[float] = 0.4
+
+
+class TimelineSubtitleItem(BaseModel):
+    id: Optional[str] = None
+    text: str
+    start: float
+    end: float
+    color: Optional[str] = None
+
+
+class TimelineRenderRequest(BaseModel):
+    clips: List[TimelineClipItem] = []
+    subtitles: List[TimelineSubtitleItem] = []
+    voiceover_filename: Optional[str] = None
+    bg_music_filename: Optional[str] = "surat_news_bgm.mp3"
+    bgm_duck_volume: Optional[float] = 0.12
+    line1_text: Optional[str] = "સુરતના મહત્વના સમાચાર"
+    line2_text: Optional[str] = "BREAKING NEWS UPDATE ⚡"
+    line1_bg: Optional[str] = "#FF0033"
+    line1_text_color: Optional[str] = "#FFFFFF"
+    line2_bg: Optional[str] = "#0080FF"
+    line2_text_color: Optional[str] = "#FFFFFF"
+    category_code: Optional[str] = "N01"
+    area: Optional[str] = "All Surat (સમગ્ર સુરત)"
+
+
+class TimelineTranscribeRequest(BaseModel):
+    audio_filename: Optional[str] = None
+    script_text: Optional[str] = None
+    chunk_size: Optional[int] = 3
 
 
 class TestLLMRequest(BaseModel):
@@ -1638,6 +1683,118 @@ def preview_segment(req: CapCutPreviewSegmentRequest):
         "status": "success",
         "preview_url": f"/output/preview/{out_name}",
         "duration": dur
+    }
+
+
+# -----------------------------------------------------------------------------
+# Interactive Timeline Editor Endpoints
+# -----------------------------------------------------------------------------
+@app.post("/api/timeline/render")
+def render_timeline(req: TimelineRenderRequest):
+    """Renders final 9:16 Instagram Reel from interactive multi-track timeline."""
+    ts = int(time.time())
+    out_video_name = f"timeline_reel_{req.category_code}_{ts}.mp4"
+    out_video_path = config.OUTPUT_VIDEOS_DIR / out_video_name
+
+    payload = req.dict()
+    # Normalize clip fields
+    for c in payload.get("clips", []):
+        if not c.get("filename") and c.get("name"):
+            c["filename"] = c["name"]
+
+    try:
+        final_mp4 = video_composer.render_timeline_reel(
+            timeline_data=payload,
+            output_video_path=str(out_video_path)
+        )
+        duration = video_composer.get_media_duration(final_mp4)
+        file_size_mb = round(os.path.getsize(final_mp4) / (1024 * 1024), 2)
+
+        meta = {
+            "id": f"reel_{ts}",
+            "filename": out_video_name,
+            "video_url": f"/output/videos/{out_video_name}",
+            "headline_line1": req.line1_text,
+            "headline_line2": req.line2_text,
+            "category_code": req.category_code,
+            "area": req.area,
+            "duration": duration,
+            "file_size_mb": file_size_mb,
+            "created_at": datetime.now().isoformat(),
+            "status": "ready"
+        }
+        with open(config.OUTPUT_VIDEOS_DIR / f"{out_video_name}.meta.json", "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2, ensure_ascii=False)
+
+        return {
+            "status": "success",
+            "video_filename": out_video_name,
+            "video_url": f"/output/videos/{out_video_name}",
+            "duration": duration,
+            "file_size_mb": file_size_mb,
+            "meta": meta
+        }
+    except Exception as e:
+        print("[Error] Timeline render failed:", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/timeline/transcribe")
+def transcribe_timeline(req: TimelineTranscribeRequest):
+    """
+    Extracts word or chunked phrase timestamps from voiceover audio using Faster-Whisper
+    (or fallback to script proportional timing) to populate Track 1 of the timeline.
+    """
+    from core.whisper_transcriber import WhisperTranscriber
+
+    resolved_audio = None
+    if req.audio_filename:
+        candidates = [
+            config.OUTPUT_AUDIO_DIR / req.audio_filename,
+            Path(req.audio_filename)
+        ]
+        for c in candidates:
+            if c.exists():
+                resolved_audio = str(c)
+                break
+
+    if not resolved_audio:
+        # Check if there is any recently created wav in output/audio
+        wavs = sorted(config.OUTPUT_AUDIO_DIR.glob("*.wav"), key=os.path.getmtime, reverse=True)
+        if wavs:
+            resolved_audio = str(wavs[0])
+
+    if not resolved_audio:
+        raise HTTPException(status_code=400, detail="No voiceover audio file found to transcribe")
+
+    transcriber = WhisperTranscriber()
+    words = transcriber.transcribe(resolved_audio, language="gu", initial_prompt=req.script_text)
+
+    if not words and req.script_text:
+        dur = video_composer.get_media_duration(resolved_audio)
+        words = transcriber.fallback_from_script(req.script_text, dur)
+
+    # Group words into clean digestible subtitle phrases (e.g. 2-4 words per block)
+    chunk_size = max(1, req.chunk_size or 3)
+    subtitles = []
+    for i in range(0, len(words), chunk_size):
+        chunk = words[i:i + chunk_size]
+        phrase = " ".join(w["word"] for w in chunk)
+        start_t = chunk[0]["start"]
+        end_t = chunk[-1]["end"]
+        subtitles.append({
+            "id": f"sub_{i // chunk_size + 1}",
+            "text": phrase,
+            "start": round(start_t, 2),
+            "end": round(end_t, 2),
+            "color": "#FFD700" if (i // chunk_size) % 2 == 0 else "#FFFFFF"
+        })
+
+    return {
+        "status": "success",
+        "subtitles": subtitles,
+        "word_count": len(words),
+        "chunk_count": len(subtitles)
     }
 
 

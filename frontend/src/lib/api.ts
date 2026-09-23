@@ -641,3 +641,115 @@ export async function regenerateSubtitlesFromScript(payload: {
   return res.json();
 }
 
+// ---------------------------------------------------------------------------
+// Interactive Multi-Track Timeline API
+// ---------------------------------------------------------------------------
+export interface TimelineClipData {
+  id: string;
+  name: string;
+  filename: string;
+  url: string;
+  sourceDuration: number;
+  trimStart: number;
+  trimEnd: number;
+  duration: number;
+  transitionOut: "dissolve" | "fadeblack" | "push" | "none";
+  transitionDuration: number;
+}
+
+export interface TimelineSubtitleData {
+  id: string;
+  text: string;
+  start: number;
+  end: number;
+  color?: string;
+}
+
+export interface TimelineRenderPayload {
+  clips: {
+    id?: string;
+    filename: string;
+    name?: string;
+    trim_start: number;
+    trim_end: number;
+    duration: number;
+    transition_out: string;
+    transition_duration: number;
+  }[];
+  subtitles: {
+    id?: string;
+    text: string;
+    start: number;
+    end: number;
+    color?: string;
+  }[];
+  voiceover_filename?: string | null;
+  bg_music_filename?: string | null;
+  bgm_duck_volume?: number;
+  line1_text?: string;
+  line2_text?: string;
+  line1_bg?: string;
+  line1_text_color?: string;
+  line2_bg?: string;
+  line2_text_color?: string;
+  category_code?: string;
+  area?: string;
+}
+
+export async function renderTimelineVideoAPI(payload: TimelineRenderPayload): Promise<{
+  status: string;
+  video_filename: string;
+  video_url: string;
+  duration: number;
+  file_size_mb: number;
+  meta: any;
+}> {
+  const res = await fetch(`${API_BASE}/api/timeline/render`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let errMsg = "Timeline render failed";
+    try {
+      const err = await res.json();
+      errMsg = err.detail || err.message || errMsg;
+    } catch {
+      const txt = await res.text();
+      if (txt) errMsg = txt;
+    }
+    throw new Error(errMsg);
+  }
+  return res.json();
+}
+
+export async function transcribeTimelineAudioAPI(payload: {
+  audio_filename?: string | null;
+  script_text?: string | null;
+  chunk_size?: number;
+}): Promise<{
+  status: string;
+  subtitles: TimelineSubtitleData[];
+  word_count: number;
+  chunk_count: number;
+}> {
+  const res = await fetch(`${API_BASE}/api/timeline/transcribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let errMsg = "Timeline transcription failed";
+    try {
+      const err = await res.json();
+      errMsg = err.detail || err.message || errMsg;
+    } catch {
+      const txt = await res.text();
+      if (txt) errMsg = txt;
+    }
+    throw new Error(errMsg);
+  }
+  return res.json();
+}
+
+

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { UserProfile, VoiceFlowSettings, fetchUserProfile, updateUserProfile } from "@/lib/api";
+import { UserProfile, VoiceFlowSettings, fetchUserProfile, updateUserProfile, TimelineClipData, TimelineSubtitleData } from "@/lib/api";
 import { CapCutSegment } from "@/lib/capcut/types";
 
 export interface ReelDraft {
@@ -31,6 +31,10 @@ export interface ReelDraft {
   badge2Left: number;
   subTop: number;
   subLeft: number;
+
+  // Timeline Editor Tracks
+  timelineClips: TimelineClipData[];
+  timelineSubtitles: TimelineSubtitleData[];
 
   // CapCut Editor Fields
   capcutClips: string[];
@@ -90,6 +94,28 @@ interface AppState {
   setIsPublishing: (val: boolean) => void;
   publishResult: any;
   setPublishResult: (res: any) => void;
+
+  // Interactive Multi-Track Timeline Editor State
+  timelineCurrentTime: number;
+  timelineIsPlaying: boolean;
+  timelineZoom: number;
+  selectedTimelineClipId: string | null;
+  selectedTimelineSubId: string | null;
+  setTimelineCurrentTime: (time: number) => void;
+  setTimelineIsPlaying: (playing: boolean) => void;
+  setTimelineZoom: (zoom: number) => void;
+  setSelectedTimelineClipId: (id: string | null) => void;
+  setSelectedTimelineSubId: (id: string | null) => void;
+  addTimelineClip: (clip: TimelineClipData) => void;
+  updateTimelineClip: (id: string, updates: Partial<TimelineClipData>) => void;
+  adjustTimelineClipDuration: (id: string, delta: number) => void;
+  removeTimelineClip: (id: string) => void;
+  splitTimelineClip: (id: string, splitOffset: number) => void;
+  reorderTimelineClips: (startIndex: number, endIndex: number) => void;
+  setTimelineSubtitles: (subs: TimelineSubtitleData[]) => void;
+  updateTimelineSubtitle: (id: string, updates: Partial<TimelineSubtitleData>) => void;
+  removeTimelineSubtitle: (id: string) => void;
+  addTimelineSubtitle: (sub: TimelineSubtitleData) => void;
 }
 
 const DEFAULT_SETTINGS: VoiceFlowSettings = {
@@ -131,6 +157,65 @@ const DEFAULT_DRAFT: ReelDraft = {
   badge2Left: 50,
   subTop: 78,
   subLeft: 50,
+
+  // Default Timeline Clips
+  timelineClips: [
+    {
+      id: "clip_1",
+      name: "Vesu Traffic & City",
+      filename: "vesu_traffic_clip.mp4",
+      url: "/assets/user_clips/vesu_traffic_clip.mp4",
+      sourceDuration: 12.0,
+      trimStart: 0.0,
+      trimEnd: 4.5,
+      duration: 4.5,
+      transitionOut: "dissolve",
+      transitionDuration: 0.4,
+    },
+    {
+      id: "clip_2",
+      name: "Adajan Rain & Road",
+      filename: "adajan_rain_clip.mp4",
+      url: "/assets/user_clips/adajan_rain_clip.mp4",
+      sourceDuration: 14.0,
+      trimStart: 0.0,
+      trimEnd: 5.0,
+      duration: 5.0,
+      transitionOut: "fadeblack",
+      transitionDuration: 0.4,
+    },
+    {
+      id: "clip_3",
+      name: "Diamond Bourse Flyover",
+      filename: "diamond_bourse_clip.mp4",
+      url: "/assets/user_clips/diamond_bourse_clip.mp4",
+      sourceDuration: 10.0,
+      trimStart: 0.0,
+      trimEnd: 4.5,
+      duration: 4.5,
+      transitionOut: "push",
+      transitionDuration: 0.4,
+    },
+    {
+      id: "clip_4",
+      name: "Surat City Drone Loop",
+      filename: "surat_city_loop.mp4",
+      url: "/assets/broll/surat_city_loop.mp4",
+      sourceDuration: 15.0,
+      trimStart: 0.0,
+      trimEnd: 5.0,
+      duration: 5.0,
+      transitionOut: "none",
+      transitionDuration: 0.0,
+    },
+  ],
+  timelineSubtitles: [
+    { id: "sub_1", text: "સુરતના વેસુ વિસ્તારમાં", start: 0.4, end: 2.2, color: "#FFD700" },
+    { id: "sub_2", text: "ગણેશ ઉત્સવનો ભવ્ય ઉત્સાહ!", start: 2.3, end: 4.6, color: "#FFFFFF" },
+    { id: "sub_3", text: "વરસાદ વચ્ચે પણ ભક્તો ઉમટી પડ્યા", start: 4.7, end: 7.2, color: "#FFD700" },
+    { id: "sub_4", text: "મંદિરમાં વિશેષ મહાઆરતી યોજાઈ", start: 7.3, end: 9.8, color: "#FFFFFF" },
+  ],
+
   capcutClips: ["vesu_traffic_clip.mp4", "adajan_rain_clip.mp4", "diamond_bourse_clip.mp4", "ganesh_utsav_clip.mp4"],
   capcutPresetId: "serious",
   capcutMotionIntensity: "balanced",
@@ -249,4 +334,141 @@ export const useStore = create<AppState>((set, get) => ({
   setIsPublishing: (val) => set({ isPublishing: val }),
   publishResult: null,
   setPublishResult: (res) => set({ publishResult: res }),
+
+  // Timeline Editor Actions
+  timelineCurrentTime: 0,
+  timelineIsPlaying: false,
+  timelineZoom: 1.0,
+  selectedTimelineClipId: "clip_1",
+  selectedTimelineSubId: null,
+  setTimelineCurrentTime: (time) => set({ timelineCurrentTime: Math.max(0, time) }),
+  setTimelineIsPlaying: (playing) => set({ timelineIsPlaying: playing }),
+  setTimelineZoom: (zoom) => set({ timelineZoom: Math.max(0.5, Math.min(3.0, zoom)) }),
+  setSelectedTimelineClipId: (id) => set({ selectedTimelineClipId: id }),
+  setSelectedTimelineSubId: (id) => set({ selectedTimelineSubId: id }),
+  addTimelineClip: (clip) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineClips: [...state.draft.timelineClips, clip],
+      },
+    })),
+  updateTimelineClip: (id, updates) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineClips: state.draft.timelineClips.map((c) => {
+          if (c.id !== id) return c;
+          const newTrimStart = updates.trimStart !== undefined ? updates.trimStart : c.trimStart;
+          let newDuration = c.duration;
+          let newTrimEnd = updates.trimEnd !== undefined ? updates.trimEnd : c.trimEnd;
+
+          if (updates.duration !== undefined) {
+            newDuration = Math.max(0.5, updates.duration);
+            newTrimEnd = newTrimStart + newDuration;
+          } else if (updates.trimEnd !== undefined || updates.trimStart !== undefined) {
+            newDuration = Math.max(0.5, newTrimEnd - newTrimStart);
+          }
+
+          return {
+            ...c,
+            ...updates,
+            trimStart: newTrimStart,
+            trimEnd: newTrimEnd,
+            duration: newDuration,
+          };
+        }),
+      },
+    })),
+  adjustTimelineClipDuration: (id, delta) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineClips: state.draft.timelineClips.map((c) => {
+          if (c.id !== id) return c;
+          const currentDur = c.duration || (c.trimEnd - c.trimStart);
+          const newDur = Math.max(0.5, Math.min(60.0, currentDur + delta));
+          return {
+            ...c,
+            duration: newDur,
+            trimEnd: c.trimStart + newDur,
+          };
+        }),
+      },
+    })),
+  removeTimelineClip: (id) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineClips: state.draft.timelineClips.filter((c) => c.id !== id),
+      },
+    })),
+  splitTimelineClip: (id, splitOffset) =>
+    set((state) => {
+      const idx = state.draft.timelineClips.findIndex((c) => c.id === id);
+      if (idx === -1) return state;
+      const target = state.draft.timelineClips[idx];
+      const validSplit = Math.max(0.5, Math.min(target.duration - 0.5, splitOffset));
+      const clipA: TimelineClipData = {
+        ...target,
+        id: `${target.id}_a_${Date.now()}`,
+        name: `${target.name} (Part 1)`,
+        trimEnd: target.trimStart + validSplit,
+        duration: validSplit,
+      };
+      const clipB: TimelineClipData = {
+        ...target,
+        id: `${target.id}_b_${Date.now()}`,
+        name: `${target.name} (Part 2)`,
+        trimStart: target.trimStart + validSplit,
+        duration: target.duration - validSplit,
+      };
+      const nextClips = [...state.draft.timelineClips];
+      nextClips.splice(idx, 1, clipA, clipB);
+      return {
+        draft: {
+          ...state.draft,
+          timelineClips: nextClips,
+        },
+      };
+    }),
+  reorderTimelineClips: (startIndex, endIndex) =>
+    set((state) => {
+      const result = Array.from(state.draft.timelineClips);
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+      return {
+        draft: {
+          ...state.draft,
+          timelineClips: result,
+        },
+      };
+    }),
+  setTimelineSubtitles: (subs) =>
+    set((state) => ({
+      draft: { ...state.draft, timelineSubtitles: subs },
+    })),
+  updateTimelineSubtitle: (id, updates) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineSubtitles: state.draft.timelineSubtitles.map((s) =>
+          s.id === id ? { ...s, ...updates } : s
+        ),
+      },
+    })),
+  removeTimelineSubtitle: (id) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineSubtitles: state.draft.timelineSubtitles.filter((s) => s.id !== id),
+      },
+    })),
+  addTimelineSubtitle: (sub) =>
+    set((state) => ({
+      draft: {
+        ...state.draft,
+        timelineSubtitles: [...state.draft.timelineSubtitles, sub],
+      },
+    })),
 }));
